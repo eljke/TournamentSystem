@@ -103,7 +103,7 @@ class MemberControllerTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
         Page<Member> page = new PageImpl<>(members, pageable, members.size());
 
-        when(memberService.findAllPageable(pageable)).thenReturn(page);
+        when(memberService.getAllPageable(pageable)).thenReturn(page);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/members/pages"))
                 .andExpect(status().isOk())

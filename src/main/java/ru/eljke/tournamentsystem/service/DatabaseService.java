@@ -10,7 +10,7 @@ public interface DatabaseService<T> {
     Optional<T> getById(Long id);
 
     List<T> getAll();
-    Page<T> findAllPageable(Pageable pageable);
+    Page<T> getAllPageable(Pageable pageable);
 
     T create(T t);
 

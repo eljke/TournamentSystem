@@ -29,7 +29,7 @@ public class MemberServiceImpl implements DatabaseService<Member> {
     }
 
     @Override
-    public Page<Member> findAllPageable(Pageable pageable) {
+    public Page<Member> getAllPageable(Pageable pageable) {
         return repository.findAll(pageable);
     }
 

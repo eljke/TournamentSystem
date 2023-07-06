@@ -74,7 +74,7 @@ class MemberServiceImplTest {
 
         when(repository.findAll(pageable)).thenReturn(page);
 
-        Page<Member> resultPage = memberService.findAllPageable(pageable);
+        Page<Member> resultPage = memberService.getAllPageable(pageable);
 
         assertEquals(members.size(), resultPage.getTotalElements());
         assertEquals(members, resultPage.getContent());

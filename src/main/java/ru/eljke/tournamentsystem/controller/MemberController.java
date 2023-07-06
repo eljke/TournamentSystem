@@ -49,14 +49,14 @@ public class MemberController {
     })
     @GetMapping("/pages")
     public ResponseEntity<Page<Member>> findAllPageable(
-                                        @Parameter(name = "page", description = "Page", required = true) @RequestParam(defaultValue = "0") int page,
-                                        @Parameter(name = "size", description = "Page size", required = true) @RequestParam(defaultValue = "10") int size,
+                                        @Parameter(name = "page", description = "Page", required = true) @RequestParam(defaultValue = "0") Integer page,
+                                        @Parameter(name = "size", description = "Page size", required = true) @RequestParam(defaultValue = "10") Integer size,
                                         @Parameter(name = "sort", description = "Page sort", required = true) @RequestParam(defaultValue = "id") String sort) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort).ascending());
-        if (service.findAllPageable(pageable).isEmpty()) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        if (service.getAllPageable(pageable).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findAllPageable(pageable));
+            return ResponseEntity.ok(service.getAllPageable(pageable));
         }
     }
 
