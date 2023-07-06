@@ -1,10 +1,9 @@
-package com.example.template;
+package ru.eljke.tournamentsystem;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class TemplateApplicationTests {
+class MemberApplicationTests {
 
 	@Test
 	void contextLoads() {

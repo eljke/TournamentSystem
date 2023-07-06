@@ -1,13 +1,13 @@
-package com.example.template;
+package ru.eljke.tournamentsystem;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TemplateApplication {
+public class MemberApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(TemplateApplication.class, args);
+		SpringApplication.run(MemberApplication.class, args);
 	}
 
 }
