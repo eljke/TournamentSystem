@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="1" author="eljke">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="members" />
+            </not>
+        </preConditions>
+        <createTable tableName="members">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)"/>
+            <column name="age" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="eljke">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="member" />
+        </preConditions>
+        <renameTable oldTableName="member" newTableName="members"/>
+    </changeSet>
+    <changeSet id="3" author="eljke">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="member" />
+        </preConditions>
+        <dropTable tableName="member"/>
+    </changeSet>
+    <changeSet id="4" author="eljke">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists columnName="email" tableName="members"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="members">
+            <column name="email" type="VARCHAR(100)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="5" author="eljke">
+        <preConditions onFail="MARK_RAN">
+            <columnExists columnName="age"  tableName="members"/>
+        </preConditions>
+        <modifyDataType tableName="members" columnName="age" newDataType="BIGINT"/>
+    </changeSet>
+</databaseChangeLog>
