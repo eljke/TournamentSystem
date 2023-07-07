@@ -1,7 +1,5 @@
 package ru.eljke.tournamentsystem.controller;
 
-import ru.eljke.tournamentsystem.model.Member;
-import ru.eljke.tournamentsystem.service.MemberServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,15 +15,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.eljke.tournamentsystem.model.Member;
+import ru.eljke.tournamentsystem.service.MemberServiceImpl;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+
 @RestController
-@RequestMapping("/members")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
-@Tag(name = "Members", description = "Manages operations with members")
-public class MemberController {
+@Tag(name = "Admin", description = "Admin panel to manage operations with members")
+public class AdminController {
     private final MemberServiceImpl service;
 
     @Operation(summary = "Get all members by pages", description = "Returns all members pageable")
@@ -33,7 +34,7 @@ public class MemberController {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "404", description = "Members not found")
     })
-    @GetMapping("")
+    @GetMapping("/members")
     public ResponseEntity<Page<Member>> findAllPageable(
             @Parameter(name = "page", description = "Page", required = true) @RequestParam(defaultValue = "0") Integer page,
             @Parameter(name = "size", description = "Page size", required = true) @RequestParam(defaultValue = "10") Integer size,
@@ -55,7 +56,7 @@ public class MemberController {
         }
     }
 
-    @GetMapping("/search")
+    @GetMapping("/members/search")
     public ResponseEntity<List<Member>> searchMembers(
             @Parameter(name = "param", description = "Parameter for search") @RequestParam(required = false) String param,
             @Parameter(name = "keyword", description = "Keyword for search") @RequestParam(required = false) String keyword) {
@@ -69,12 +70,13 @@ public class MemberController {
         }
     }
 
+
     @Operation(summary = "Get member by ID", description = "Returns a single member by their ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "404", description = "Member not found")
     })
-    @GetMapping("/{id}")
+    @GetMapping("/members/{id}")
     public ResponseEntity<Member> getById(@Parameter(name = "id", description = "Member id", required = true) @PathVariable Long id) {
         if (service.getById(id).isPresent()) {
             return ResponseEntity.ok(service.getById(id).orElse(null));
@@ -87,7 +89,7 @@ public class MemberController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation")
     })
-    @PostMapping("/create")
+    @PostMapping("/members/create")
     public ResponseEntity<Member> create(@Parameter(name = "member", description = "Member object", required = true) @RequestBody Member member) {
         return ResponseEntity.ok(service.create(member));
     }
@@ -97,7 +99,7 @@ public class MemberController {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "404", description = "Member not found")
     })
-    @PutMapping("/{id}")
+    @PutMapping("/members/{id}")
     public ResponseEntity<Member> update(@Parameter(name = "id", description = "Member id", required = true) @PathVariable Long id,
                                          @Parameter(name = "member", description = "Member object", required = true) @RequestBody Member member) {
         if (service.getById(id).isPresent()) {
@@ -111,7 +113,7 @@ public class MemberController {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "404", description = "Member not found")
     })
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/members/{id}")
     public ResponseEntity<String> delete(@Parameter(name = "id", description = "Member id", required = true) @PathVariable Long id) {
         if (service.getById(id).isPresent()) {
             service.delete(id);

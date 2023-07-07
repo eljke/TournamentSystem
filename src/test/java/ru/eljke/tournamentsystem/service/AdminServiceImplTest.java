@@ -1,6 +1,9 @@
 package ru.eljke.tournamentsystem.service;
 
+import ru.eljke.tournamentsystem.model.GradeLetter;
+import ru.eljke.tournamentsystem.model.GradeNumber;
 import ru.eljke.tournamentsystem.model.Member;
+import ru.eljke.tournamentsystem.model.Role;
 import ru.eljke.tournamentsystem.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,17 +13,14 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class MemberServiceImplTest {
+class AdminServiceImplTest {
     @Mock
     private MemberRepository repository;
 
@@ -45,25 +45,39 @@ class MemberServiceImplTest {
     }
 
     @Test
-    void testGetAll() {
-        List<Member> expectedMembers = new ArrayList<>();
-        expectedMembers.add(new Member());
-        expectedMembers.add(new Member());
-        when(repository.findAll(any(Sort.class))).thenReturn(expectedMembers);
+    void testFindAll() {
+        Member member1 = new Member();
+        member1.setId(1L);
+        member1.setUsername("user1");
+        member1.setFirstname("John");
+        member1.setLastname("Doe");
+        member1.setPatronymic("Patronymic1");
+        member1.setBirthDate(LocalDate.of(2000, 12, 12));
+        member1.setPhone("1234567890");
+        member1.setEmail("john@example.com");
+        member1.setPassword("password");
+        member1.setCity("Moscow");
+        member1.setSchool("Test School 1");
+        member1.setGradeNumber(GradeNumber.ELEVEN);
+        member1.setGradeLetter(GradeLetter.А);
+        member1.setRoles(Collections.singleton(Role.STUDENT));
 
-        List<Member> actualMembers = memberService.getAll();
+        Member member2 = new Member();
+        member2.setId(2L);
+        member2.setUsername("user2");
+        member2.setFirstname("Alice");
+        member2.setLastname("Smith");
+        member2.setPatronymic("Patronymic2");
+        member2.setBirthDate(LocalDate.of(2002, 5, 28));
+        member2.setPhone("1234567890");
+        member2.setEmail("alice@example.com");
+        member2.setPassword("password");
+        member2.setCity("Boston");
+        member2.setSchool("Test School 2");
+        member2.setGradeNumber(GradeNumber.EIGHT);
+        member2.setGradeLetter(GradeLetter.Г);
+        member2.setRoles(Collections.singleton(Role.STUDENT));
 
-        assertEquals(expectedMembers.size(), actualMembers.size());
-    }
-
-    @Test
-    void testFindAllPageable() {
-        Member member1 = new Member(1L, "user1", "John", "Doe", "Patronymic1",
-                LocalDate.of(2000, 12, 12), "1234567890", "john@example.com",
-                "password", "Moscow", "Test School 1", "Test Grade 1");
-        Member member2 = new Member(2L, "user2", "Alice", "Smith", "Patronymic2",
-                LocalDate.of(2002, 5, 28), "1234567890", "alice@example.com",
-                "password", "Boston", "Test School 2", "Test Grade 2");
 
         List<Member> members = Arrays.asList(member1, member2);
 
@@ -74,7 +88,7 @@ class MemberServiceImplTest {
 
         when(repository.findAll(pageable)).thenReturn(page);
 
-        Page<Member> resultPage = memberService.getAllPageable(pageable);
+        Page<Member> resultPage = memberService.getAll(pageable);
 
         assertEquals(members.size(), resultPage.getTotalElements());
         assertEquals(members, resultPage.getContent());

@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 //@SpringBootTest
 class MemberApplicationTests {
-
 	@Test
 	void contextLoads() {
 	}

@@ -8,9 +8,9 @@ import java.util.Optional;
 
 public interface DatabaseService<T> {
     Optional<T> getById(Long id);
+    Optional<T> getByParam(String param);
 
-    List<T> getAll();
-    Page<T> getAllPageable(Pageable pageable);
+    Page<T> getAll(Pageable pageable);
 
     T create(T t);
 

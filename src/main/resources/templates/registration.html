@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Регистрация</title>
+    <meta name="viewport" http-equiv="Content-Type" content="text/html; charset=UTF-8; width=device-width; initial-scale=1" charset="UTF-8"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles/registration.css">
+</head>
+
+<body>
+<div id="container">
+    <form method="POST" action="/registration" id="customForm">
+        <a id="home" href="/games"><img src="/images/home.png" alt="home"></a>
+        <h2>Регистрация</h2>
+        <div class="form-group">
+            <label for="inputUsername">Имя пользователя</label><input type="text" name="username" placeholder="Имя пользователя"
+                                                      autofocus="autofocus" class="form-control" id="inputUsername" required>
+            <p th:text="${usernameError}" style="color: red"></p>
+        </div>
+
+        <div class="form-group">
+            <label for="selectRole">Роль</label>
+            <select name="roles" class="form-control" id="selectRole" required>
+                <option value="STUDENT">Ученик</option>
+                <option value="TEACHER">Учитель</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="inputPassword"></label><input type="password" name="password" placeholder="Пароль"
+                                                      class="form-control" id="inputPassword" required>
+            <p></p>
+        </div>
+        <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="EULA" required>
+            <label class="form-check-label" for="EULA">Нажимая кнопку "Зарегистрироваться", я принимаю условия
+                <a href="/docs/EULA.pdf" target="_blank">Пользовательского соглашения</a> и даю своё согласие на обработку персональных данных в соответствии с
+                <a href="/docs/PrivacyPolicy.pdf" target="_blank">Политикой конфиденциальности</a> и действующим законодательством Российской Федерации</label>
+            <p></p>
+        </div>
+        <br>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary btn-block" value="Зарегистрироваться">
+        </div>
+    </form>
+</div>
+</body>
+</html>
