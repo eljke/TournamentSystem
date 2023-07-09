@@ -15,27 +15,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.eljke.tournamentsystem.model.Member;
-import ru.eljke.tournamentsystem.service.MemberServiceImpl;
+import ru.eljke.tournamentsystem.dto.UserDTO;
+import ru.eljke.tournamentsystem.mapper.UserMapper;
+import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.service.UserService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 @Tag(name = "Admin", description = "Admin panel to manage operations with members")
-public class AdminController {
-    private final MemberServiceImpl service;
+public class UserController {
+    private final UserService service;
 
     @Operation(summary = "Get all members by pages", description = "Returns all members pageable")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "404", description = "Members not found")
     })
-    @GetMapping("/members")
-    public ResponseEntity<Page<Member>> findAllPageable(
+    @GetMapping("")
+    public ResponseEntity<Page<UserDTO>> findAllPageable(
             @Parameter(name = "page", description = "Page", required = true) @RequestParam(defaultValue = "0") Integer page,
             @Parameter(name = "size", description = "Page size", required = true) @RequestParam(defaultValue = "10") Integer size,
             @Parameter(name = "sort", description = "Page sort", required = true) @RequestParam(defaultValue = "id") String sort,
@@ -52,58 +54,61 @@ public class AdminController {
         if (service.getAll(pageable).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.getAll(pageable));
+            Page<User> users = service.getAll(pageable);
+            return ResponseEntity.ok(users.map(UserMapper.INSTANCE::userToUserDTO));
         }
     }
 
-    @GetMapping("/members/search")
-    public ResponseEntity<List<Member>> searchMembers(
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchMembers(
             @Parameter(name = "param", description = "Parameter for search") @RequestParam(required = false) String param,
             @Parameter(name = "keyword", description = "Keyword for search") @RequestParam(required = false) String keyword) {
 
-        List<Member> members = service.search(param, keyword);
+        List<User> userEntities = service.search(param, keyword);
+        List<UserDTO> userDTOS = UserMapper.INSTANCE.usersToUserDTOs(userEntities);
 
-        if (members.isEmpty()) {
+        if (userEntities.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(members);
+            return ResponseEntity.ok(userDTOS);
         }
     }
-
 
     @Operation(summary = "Get member by ID", description = "Returns a single member by their ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "404", description = "Member not found")
+            @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @GetMapping("/members/{id}")
-    public ResponseEntity<Member> getById(@Parameter(name = "id", description = "Member id", required = true) @PathVariable Long id) {
-        if (service.getById(id).isPresent()) {
-            return ResponseEntity.ok(service.getById(id).orElse(null));
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> getById(@Parameter(name = "id", description = "User id", required = true) @PathVariable Long id) {
+        User user = service.getById(id);
+        if (user != null) {
+            UserDTO userDTO = UserMapper.INSTANCE.userToUserDTO(user);
+            return ResponseEntity.ok(userDTO);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @Operation(summary = "Create member", description = "Create member with given body")
+    @Operation(summary = "Create user", description = "Create user with given body")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation")
     })
-    @PostMapping("/members/create")
-    public ResponseEntity<Member> create(@Parameter(name = "member", description = "Member object", required = true) @RequestBody Member member) {
-        return ResponseEntity.ok(service.create(member));
+    @PostMapping("/create")
+    public ResponseEntity<UserDTO> create(@Parameter(name = "user", description = "User object", required = true) @RequestBody User user) {
+        return ResponseEntity.ok(UserMapper.INSTANCE.userToUserDTO(service.create(user)));
     }
 
-    @Operation(summary = "Update member by ID", description = "Update a single member by their ID")
+    @Operation(summary = "Update user by ID", description = "Update a single user by their ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "404", description = "Member not found")
+            @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PutMapping("/members/{id}")
-    public ResponseEntity<Member> update(@Parameter(name = "id", description = "Member id", required = true) @PathVariable Long id,
-                                         @Parameter(name = "member", description = "Member object", required = true) @RequestBody Member member) {
-        if (service.getById(id).isPresent()) {
-            return ResponseEntity.ok(service.update(member, id));
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDTO> update(@Parameter(name = "id", description = "User id", required = true) @PathVariable Long id,
+                                       @Parameter(name = "user", description = "User object", required = true) @RequestBody User user) {
+        if (service.getById(id) != null) {
+            return ResponseEntity.ok(UserMapper.INSTANCE.userToUserDTO(service.update(user, id)));
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -111,11 +116,11 @@ public class AdminController {
     @Operation(summary = "Delete member by ID", description = "Deletes member by their ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "404", description = "Member not found")
+            @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @DeleteMapping("/members/{id}")
-    public ResponseEntity<String> delete(@Parameter(name = "id", description = "Member id", required = true) @PathVariable Long id) {
-        if (service.getById(id).isPresent()) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@Parameter(name = "id", description = "User id", required = true) @PathVariable Long id) {
+        if (service.getById(id) != null) {
             service.delete(id);
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setContentType(new MediaType("text", "plain", StandardCharsets.UTF_8));
