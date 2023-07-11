@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="eljke" id="create_user_roles_table" >
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_details_roles" />
+            </not>
+        </preConditions>
+        <sql>CREATE TYPE roles AS ENUM ('ADMIN','TEACHER','STUDENT')</sql>
+        <createTable tableName="user_details_roles">
+            <column name="user_details_id" type="BIGINT">
+                <constraints nullable="false" references="user_details(id)" foreignKeyName="role_fk"/>
+            </column>
+            <column name="roles" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

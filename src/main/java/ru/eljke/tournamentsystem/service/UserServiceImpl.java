@@ -1,35 +1,39 @@
 package ru.eljke.tournamentsystem.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import ru.eljke.tournamentsystem.model.User;
-import ru.eljke.tournamentsystem.model.Role;
+import ru.eljke.tournamentsystem.dto.LoginRequestDTO;
+import ru.eljke.tournamentsystem.dto.UserDTO;
+import ru.eljke.tournamentsystem.entity.GradeLetter;
+import ru.eljke.tournamentsystem.entity.GradeNumber;
+import ru.eljke.tournamentsystem.mapper.UserMapper;
+import ru.eljke.tournamentsystem.entity.User;
+import ru.eljke.tournamentsystem.entity.Role;
 import ru.eljke.tournamentsystem.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserDetailsService, UserService {
     private final UserRepository repository;
-    private final EntityManager entityManager;
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
-    public User getById(Long id) {
+    public UserDTO getById(Long id) {
         if (repository.findById(id).isPresent()) {
-            return repository.findById(id).get();
+            return UserMapper.INSTANCE.userToUserDTO(repository.findById(id).get());
         } else {
             return null;
         }
@@ -45,12 +49,12 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     }
 
     @Override
-    public Page<User> getAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<UserDTO> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(UserMapper.INSTANCE::userToUserDTO);
     }
 
     @Override
-    public User create(User user) {
+    public UserDTO create(User user) {
         if (repository.findUserByUsername(user.getUsername()) != null) {
             throw new IllegalArgumentException("Username is already taken!");
         }
@@ -65,11 +69,11 @@ public class UserServiceImpl implements UserDetailsService, UserService {
             user.setRoles(roles);
         }
 
-        return repository.save(user);
+        return UserMapper.INSTANCE.userToUserDTO(repository.save(user));
     }
 
     @Override
-    public User update(User user, Long id) {
+    public UserDTO update(User user, Long id) {
         Optional<User> existingMemberOptional = repository.findById(id);
         if (existingMemberOptional.isPresent()) {
             User existingUser = existingMemberOptional.get();
@@ -113,7 +117,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
                 existingUser.setGrade(user.getGrade());
             }
 
-            return repository.save(existingUser);
+            return UserMapper.INSTANCE.userToUserDTO(repository.save(existingUser));
         } else {
             return null;
         }
@@ -140,6 +144,11 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Override
     public void banByUsername(String username, String reason) {
         User user = repository.findUserByUsername(username);
+
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
         user.ban(reason);
 
         repository.save(user);
@@ -148,6 +157,11 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Override
     public void unbanByUsername(String username) {
         User user = repository.findUserByUsername(username);
+
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
         user.unban();
 
         repository.save(user);
@@ -175,46 +189,40 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     }
 
     @Override
-    public List<User> search(String param, String keyword) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        // Создаём типизированный запрос, который определяет результаты и структуру запроса
-        CriteriaQuery<User> criteriaQuery = criteriaBuilder.createQuery(User.class);
-        // Создаём корневой элемент запроса, который соответствует таблице в базе данных
-        Root<User> root = criteriaQuery.from(User.class);
-
-        List<Predicate> predicates = new ArrayList<>();
-
-        if (param != null && param.equals("fullname")) {
-            // Создаем ФИО
-            Expression<String> fullName = criteriaBuilder.concat(
-                    criteriaBuilder.concat(
-                            criteriaBuilder.concat(
-                                    criteriaBuilder.concat(
-                                            criteriaBuilder.trim(root.get("firstname")),
-                                            " "),
-                                    criteriaBuilder.trim(root.get("lastname"))),
-                            " "),
-                    criteriaBuilder.trim(root.get("patronymic"))
-            );
-            predicates.add(criteriaBuilder.like(criteriaBuilder.lower(fullName), "%" + keyword.toLowerCase() + "%"));
-        } else {
-            // Проверяем, существует ли поле param в сущности User
-            try {
-                if (param == null) {
-                    return repository.searchUsers(keyword);
-                } else {
-                    predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get(param)), "%" + keyword.toLowerCase() + "%"));
-                }
-            } catch (IllegalArgumentException e) {
-                // Обработка случая, когда поле не существует
-                // TODO: Наверное, стоит всё же по-нормальному обработать позже
-                return Collections.emptyList();
-            }
+    public List<UserDTO> searchEverywhere(String keyword) {
+        if (keyword != null) {
+            return UserMapper.INSTANCE.usersToUserDTOs(repository.searchUsers(keyword));
         }
-        // Указываем предикаты в критерии запроса
-        criteriaQuery.where(predicates.toArray(new Predicate[0]));
+        throw new IllegalArgumentException("Keyword param is missing");
+    }
 
-        return entityManager.createQuery(criteriaQuery).getResultList();
+    @Override
+    public List<UserDTO> searchByParam(String param, String keyword) {
+        if (keyword != null) {
+            Specification<User> specification = byColumnNameAndValue(param, keyword);
+            return UserMapper.INSTANCE.usersToUserDTOs(repository.findAll(specification));
+        }
+        throw new IllegalArgumentException("Keyword param is missing");
+    }
+
+    @Override
+    public UserDTO register(LoginRequestDTO request) {
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
+        // TODO: ПОКА ТУТ ЗАГЛУШКА
+        user.setCity("");
+        user.setBirthDate(LocalDate.of(1970, 1, 1));
+        user.setFirstname("");
+        user.setLastname("");
+        user.setPatronymic("");
+        user.setSchool("");
+        user.setGradeNumber(GradeNumber.ELEVEN);
+        user.setGradeLetter(GradeLetter.А);
+        user.setGrade(user.getGrade());
+        user.setRoles(Collections.emptySet());
+
+        return UserMapper.INSTANCE.userToUserDTO(repository.save(user));
     }
 
     @Override
@@ -227,5 +235,17 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         String encodedPassword = bCryptPasswordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
         repository.save(user);
+    }
+
+    private static Specification<User> byColumnNameAndValue(String columnName, String value) {
+        return (root, query, builder) -> {
+            try {
+                return builder.like(root.get(columnName), "%" + value + "%");
+            } catch (IllegalArgumentException e) {
+                // Обработка ошибки при несуществующем имени столбца
+//                return builder.disjunction();
+                throw new IllegalArgumentException("Incorrect param provided");
+            }
+        };
     }
 }

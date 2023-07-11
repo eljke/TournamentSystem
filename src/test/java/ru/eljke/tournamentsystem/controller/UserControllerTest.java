@@ -1,8 +1,7 @@
 package ru.eljke.tournamentsystem.controller;
 
 import ru.eljke.tournamentsystem.dto.UserDTO;
-import ru.eljke.tournamentsystem.mapper.UserMapper;
-import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.entity.User;
 import ru.eljke.tournamentsystem.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -62,7 +61,7 @@ class UserControllerTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
         Page<UserDTO> page = new PageImpl<>(users, pageable, users.size());
 
-        when(service.getAll(pageable).map(UserMapper.INSTANCE::userToUserDTO)).thenReturn(page);
+        when(service.getAll(pageable)).thenReturn(page);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/users"))
                 .andExpect(status().isOk())
@@ -73,13 +72,11 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.content[0].username").value(user1.getUsername()))
                 .andExpect(jsonPath("$.content[0].city").value(user1.getCity()))
                 .andExpect(jsonPath("$.content[0].school").value(user1.getSchool()))
-                .andExpect(jsonPath("$.content[0].grade").value(user1.getGrade()))
 
                 .andExpect(jsonPath("$.content[1].id").value(user2.getId()))
                 .andExpect(jsonPath("$.content[1].username").value(user2.getUsername()))
                 .andExpect(jsonPath("$.content[1].city").value(user2.getCity()))
-                .andExpect(jsonPath("$.content[1].school").value(user2.getSchool()))
-                .andExpect(jsonPath("$.content[1].grade").value(user2.getGrade()));
+                .andExpect(jsonPath("$.content[1].school").value(user2.getSchool()));
     }
 
     @Test
@@ -88,13 +85,13 @@ class UserControllerTest {
         expectedUser.setId(1L);
         expectedUser.setFullname("Some Fullname Here");
 
-        when(UserMapper.INSTANCE.userToUserDTO(service.getById(any(Long.class)))).thenReturn(expectedUser);
+        when(service.getById(any(Long.class))).thenReturn(expectedUser);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/users/{id}", expectedUser.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(expectedUser.getId()))
-                .andExpect(jsonPath("$.firstname").value(expectedUser.getFullname()));
+                .andExpect(jsonPath("$.fullname").value(expectedUser.getFullname()));
     }
 
     @Test
@@ -111,7 +108,7 @@ class UserControllerTest {
         createdUser.setCity("Moscow");
         createdUser.setSchool("Test School 1");
 
-        when(UserMapper.INSTANCE.userToUserDTO(service.create(any(User.class)))).thenReturn(createdUser);
+        when(service.create(any(User.class))).thenReturn(createdUser);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -121,8 +118,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id").value(createdUser.getId()))
                 .andExpect(jsonPath("$.username").value(createdUser.getUsername()))
                 .andExpect(jsonPath("$.city").value(createdUser.getCity()))
-                .andExpect(jsonPath("$.school").value(createdUser.getSchool()))
-                .andExpect(jsonPath("$.grade").value(createdUser.getGrade()));
+                .andExpect(jsonPath("$.school").value(createdUser.getSchool()));
     }
 
     @Test
@@ -142,8 +138,8 @@ class UserControllerTest {
 
         updatedUser.setId(memberId);
 
-        when(UserMapper.INSTANCE.userToUserDTO(service.getById(memberId))).thenReturn(updatedUser);
-        when(UserMapper.INSTANCE.userToUserDTO(service.update(any(User.class), eq(memberId)))).thenReturn(updatedUser);
+        when(service.getById(memberId)).thenReturn(updatedUser);
+        when(service.update(any(User.class), eq(memberId))).thenReturn(updatedUser);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/users/{id}", memberId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -153,8 +149,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id").value(updatedUser.getId()))
                 .andExpect(jsonPath("$.username").value(updatedUser.getUsername()))
                 .andExpect(jsonPath("$.city").value(updatedUser.getCity()))
-                .andExpect(jsonPath("$.school").value(updatedUser.getSchool()))
-                .andExpect(jsonPath("$.grade").value(updatedUser.getGrade()));
+                .andExpect(jsonPath("$.school").value(updatedUser.getSchool()));
     }
 
     @Test
@@ -163,7 +158,7 @@ class UserControllerTest {
         UserDTO expectedUser = new UserDTO();
         expectedUser.setId(memberId);
 
-        when(UserMapper.INSTANCE.userToUserDTO(service.getById(memberId))).thenReturn(expectedUser);
+        when(service.getById(memberId)).thenReturn(expectedUser);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/users/{id}", memberId))
                 .andExpect(status().isOk())

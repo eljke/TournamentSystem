@@ -1,9 +1,11 @@
 package ru.eljke.tournamentsystem.service;
 
-import ru.eljke.tournamentsystem.model.GradeLetter;
-import ru.eljke.tournamentsystem.model.GradeNumber;
-import ru.eljke.tournamentsystem.model.User;
-import ru.eljke.tournamentsystem.model.Role;
+import ru.eljke.tournamentsystem.dto.UserDTO;
+import ru.eljke.tournamentsystem.mapper.UserMapper;
+import ru.eljke.tournamentsystem.entity.GradeLetter;
+import ru.eljke.tournamentsystem.entity.GradeNumber;
+import ru.eljke.tournamentsystem.entity.User;
+import ru.eljke.tournamentsystem.entity.Role;
 import ru.eljke.tournamentsystem.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,14 +36,24 @@ class UserServiceImplTest {
 
     @Test
     void testGetById() {
-        Long memberId = 1L;
         User expectedUser = new User();
-        expectedUser.setId(memberId);
-        when(repository.findById(memberId)).thenReturn(Optional.of(expectedUser));
+        expectedUser.setId(1L);
+        expectedUser.setUsername("Username");
+        expectedUser.setFirstname("Firstname");
+        expectedUser.setLastname("Lastname");
+        expectedUser.setPatronymic("Patronymic");
+        expectedUser.setBirthDate(LocalDate.of(1000, 1, 1));
+        expectedUser.setCity("City");
+        expectedUser.setSchool("School");
+        expectedUser.setGradeNumber(GradeNumber.ELEVEN);
+        expectedUser.setGradeLetter(GradeLetter.А);
+        expectedUser.setRoles(Collections.singleton(Role.ADMIN));
 
-        User actualMember = memberService.getById(memberId);
+        when(repository.findById(any(Long.class))).thenReturn(Optional.of(expectedUser));
 
-        assertEquals(expectedUser, actualMember);
+        UserDTO actualMember = memberService.getById(expectedUser.getId());
+
+        assertEquals(UserMapper.INSTANCE.userToUserDTO(expectedUser), actualMember);
     }
 
     @Test
@@ -49,34 +61,14 @@ class UserServiceImplTest {
         User user1 = new User();
         user1.setId(1L);
         user1.setUsername("user1");
-        user1.setFirstname("John");
-        user1.setLastname("Doe");
-        user1.setPatronymic("Patronymic1");
-        user1.setBirthDate(LocalDate.of(2000, 12, 12));
-        user1.setPhone("1234567890");
-        user1.setEmail("john@example.com");
-        user1.setPassword("password");
         user1.setCity("Moscow");
         user1.setSchool("Test School 1");
-        user1.setGradeNumber(GradeNumber.ELEVEN);
-        user1.setGradeLetter(GradeLetter.А);
-        user1.setRoles(Collections.singleton(Role.STUDENT));
 
         User user2 = new User();
         user2.setId(2L);
         user2.setUsername("user2");
-        user2.setFirstname("Alice");
-        user2.setLastname("Smith");
-        user2.setPatronymic("Patronymic2");
-        user2.setBirthDate(LocalDate.of(2002, 5, 28));
-        user2.setPhone("1234567890");
-        user2.setEmail("alice@example.com");
-        user2.setPassword("password");
         user2.setCity("Boston");
         user2.setSchool("Test School 2");
-        user2.setGradeNumber(GradeNumber.EIGHT);
-        user2.setGradeLetter(GradeLetter.Г);
-        user2.setRoles(Collections.singleton(Role.STUDENT));
 
 
         List<User> userEntities = Arrays.asList(user1, user2);
@@ -88,21 +80,24 @@ class UserServiceImplTest {
 
         when(repository.findAll(pageable)).thenReturn(page);
 
-        Page<User> resultPage = memberService.getAll(pageable);
+        Page<UserDTO> resultPage = memberService.getAll(pageable);
 
         assertEquals(userEntities.size(), resultPage.getTotalElements());
-        assertEquals(userEntities, resultPage.getContent());
+        assertEquals(userEntities.stream()
+                .map(UserMapper.INSTANCE::userToUserDTO)
+                .toList(), resultPage.getContent());
         assertEquals(pageable, resultPage.getPageable());
     }
 
     @Test
     void testCreate() {
         User userToCreate = new User();
+        userToCreate.setSchool("School");
         when(repository.save(any(User.class))).thenReturn(userToCreate);
 
-        User createdUser = memberService.create(userToCreate);
+        UserDTO createdUser = memberService.create(userToCreate);
 
-        assertEquals(userToCreate, createdUser);
+        assertEquals(UserMapper.INSTANCE.userToUserDTO(userToCreate), createdUser);
         verify(repository, times(1)).save(userToCreate);
     }
 
@@ -113,16 +108,14 @@ class UserServiceImplTest {
         existingUser.setId(memberId);
 
         User updatedUserData = new User();
-        updatedUserData.setFirstname("John");
-        updatedUserData.setLastname("Doe");
+        updatedUserData.setCity("City");
 
         when(repository.findById(memberId)).thenReturn(Optional.of(existingUser));
         when(repository.save(any(User.class))).thenReturn(existingUser);
 
-        User updatedUser = memberService.update(updatedUserData, memberId);
+        UserDTO updatedUser = memberService.update(updatedUserData, memberId);
 
-        assertEquals(updatedUserData.getFirstname(), updatedUser.getFirstname());
-        assertEquals(updatedUserData.getLastname(), updatedUser.getLastname());
+        assertEquals(updatedUserData.getCity(), updatedUser.getCity());
         verify(repository, times(1)).findById(memberId);
         verify(repository, times(1)).save(existingUser);
     }
@@ -134,7 +127,7 @@ class UserServiceImplTest {
 
         when(repository.findById(memberId)).thenReturn(Optional.empty());
 
-        User updatedUser = memberService.update(updatedUserData, memberId);
+        UserDTO updatedUser = memberService.update(updatedUserData, memberId);
 
         assertNull(updatedUser);
         verify(repository, times(1)).findById(memberId);

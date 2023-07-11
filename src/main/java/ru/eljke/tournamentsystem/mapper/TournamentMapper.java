@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import ru.eljke.tournamentsystem.dto.TournamentDTO;
-import ru.eljke.tournamentsystem.model.Tournament;
+import ru.eljke.tournamentsystem.entity.Tournament;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ public interface TournamentMapper {
     @Named("localDateToString")
     default String localDateToString(LocalDate date) {
         if (date == null) {
-            return "";
+            return null;
         }
 
         return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
@@ -33,7 +33,7 @@ public interface TournamentMapper {
     @Named("localDateTimeToString")
     default String localDateTimeToString(LocalDateTime date) {
         if (date == null) {
-            return "";
+            return null;
         }
 
         return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));

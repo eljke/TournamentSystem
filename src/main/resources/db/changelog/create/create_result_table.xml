@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="create_result_table" author="eljke">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="result" />
+            </not>
+        </preConditions>
+        <createTable tableName="result">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="winner_id" type="BIGINT">
+                <constraints nullable="true" references="user_details(id)" foreignKeyName="winner_fk"/>
+            </column>
+            <column name="loser_id" type="BIGINT">
+                <constraints nullable="true" references="user_details(id)" foreignKeyName="loser_fk"/>
+            </column>
+            <column name="winner_team_id" type="BIGINT">
+                <constraints nullable="true" references="team(id)" foreignKeyName="winner_team_fk"/>
+            </column>
+            <column name="loser_team_id" type="BIGINT">
+                <constraints nullable="true" references="team(id)" foreignKeyName="loser_team_fk"/>
+            </column>
+            <column name="is_draw" type="BOOLEAN">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

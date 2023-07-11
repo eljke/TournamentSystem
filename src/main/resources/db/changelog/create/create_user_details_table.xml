@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="create_user_details_table" author="eljke">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user_details" />
+            </not>
+        </preConditions>
+        <sql>CREATE TYPE grade_number AS ENUM ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11')</sql>
+        <sql>CREATE TYPE grade_letter AS ENUM ('А', 'Б', 'В', 'Г')</sql>
+        <createTable tableName="user_details">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="username" type="VARCHAR(16)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="firstname" type="VARCHAR(255)"/>
+            <column name="lastname" type="VARCHAR(255)"/>
+            <column name="patronymic" type="VARCHAR(255)"/>
+            <column name="birth_date" type="DATE"/>
+            <column name="phone" type="VARCHAR(255)"/>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="password" type="VARCHAR(255)"/>
+            <column name="city" type="VARCHAR(255)"/>
+            <column name="school" type="VARCHAR(255)"/>
+            <column name="grade_number" type="VARCHAR(255)"/>
+            <column name="grade_letter" type="VARCHAR(255)"/>
+            <column name="grade" type="VARCHAR(255)"/>
+            <column name="isBanned" type="BOOLEAN"/>
+            <column name="banReason" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

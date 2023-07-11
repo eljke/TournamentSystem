@@ -1,22 +1,22 @@
 package ru.eljke.tournamentsystem.repository;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.entity.User;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
     User findUserByUsername(String username);
     @Query(value = "SELECT u FROM user_details u " +
-            "WHERE u.firstname LIKE %:keyword% " +
-            "OR u.lastname LIKE %:keyword% " +
-            "OR u.patronymic LIKE %:keyword% " +
-            "OR u.city LIKE %:keyword% " +
-            "OR u.school LIKE %:keyword% " +
-            "OR u.grade LIKE %:keyword%")
+            "WHERE LOWER(CONCAT(u.lastname, ' ', u.firstname, ' ', u.patronymic)) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            "OR LOWER(u.city) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            "OR LOWER(u.school) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            "OR LOWER(u.grade) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<User> searchUsers(@Param("keyword") String keyword);
 }

@@ -1,4 +1,4 @@
-package ru.eljke.tournamentsystem.model;
+package ru.eljke.tournamentsystem.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -87,11 +87,11 @@ public class Tournament {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Tournament that = (Tournament) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(city, that.city) && Objects.equals(organizingSchool, that.organizingSchool) && Objects.equals(startDateTime, that.startDateTime) && Objects.equals(endDate, that.endDate) && Objects.equals(participatingCities, that.participatingCities) && Objects.equals(minParticipants, that.minParticipants) && Objects.equals(maxParticipants, that.maxParticipants) && Objects.equals(minAgeToParticipate, that.minAgeToParticipate) && Objects.equals(maxAgeToParticipate, that.maxAgeToParticipate) && Objects.equals(allowedGrades, that.allowedGrades) && stage == that.stage && subject == that.subject && type == that.type && Objects.equals(teamSize, that.teamSize) && Objects.equals(isPublic, that.isPublic) && Objects.equals(matches, that.matches);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(city, that.city) && Objects.equals(organizingSchool, that.organizingSchool) && Objects.equals(soloParticipants, that.soloParticipants) && Objects.equals(teamParticipants, that.teamParticipants) && Objects.equals(startDateTime, that.startDateTime) && Objects.equals(endDate, that.endDate) && Objects.equals(participatingCities, that.participatingCities) && Objects.equals(minParticipants, that.minParticipants) && Objects.equals(maxParticipants, that.maxParticipants) && Objects.equals(minAgeToParticipate, that.minAgeToParticipate) && Objects.equals(maxAgeToParticipate, that.maxAgeToParticipate) && Objects.equals(allowedGrades, that.allowedGrades) && stage == that.stage && subject == that.subject && type == that.type && Objects.equals(teamSize, that.teamSize) && Objects.equals(isPublic, that.isPublic) && Objects.equals(matches, that.matches);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, city, organizingSchool, startDateTime, endDate, participatingCities, minParticipants, maxParticipants, minAgeToParticipate, maxAgeToParticipate, allowedGrades, stage, subject, type, teamSize, isPublic, matches);
+        return Objects.hash(id, name, city, organizingSchool, soloParticipants, teamParticipants, startDateTime, endDate, participatingCities, minParticipants, maxParticipants, minAgeToParticipate, maxAgeToParticipate, allowedGrades, stage, subject, type, teamSize, isPublic, matches);
     }
 }

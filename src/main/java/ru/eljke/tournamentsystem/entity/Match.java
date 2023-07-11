@@ -1,4 +1,4 @@
-package ru.eljke.tournamentsystem.model;
+package ru.eljke.tournamentsystem.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Schema(description = "Match between 2 participants")
 @Getter
@@ -42,4 +43,17 @@ public class Match {
     @OneToOne(targetEntity = Result.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "result_id")
     private Result result;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Match match = (Match) o;
+        return Objects.equals(id, match.id) && Objects.equals(dateTime, match.dateTime) && Objects.equals(teamParticipant1, match.teamParticipant1) && Objects.equals(teamParticipant2, match.teamParticipant2) && Objects.equals(soloParticipant1, match.soloParticipant1) && Objects.equals(soloParticipant2, match.soloParticipant2) && Objects.equals(result, match.result);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, dateTime, teamParticipant1, teamParticipant2, soloParticipant1, soloParticipant2, result);
+    }
 }

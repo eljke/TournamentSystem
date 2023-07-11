@@ -2,7 +2,7 @@ package ru.eljke.tournamentsystem.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.eljke.tournamentsystem.model.Result;
+import ru.eljke.tournamentsystem.entity.Result;
 import ru.eljke.tournamentsystem.repository.ResultRepository;
 
 @Service

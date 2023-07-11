@@ -12,7 +12,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.eljke.tournamentsystem.model.Team;
+import ru.eljke.tournamentsystem.dto.TeamDTO;
+import ru.eljke.tournamentsystem.entity.Team;
 import ru.eljke.tournamentsystem.service.TeamService;
 
 
@@ -28,7 +29,7 @@ public class TeamController {
             @ApiResponse(responseCode = "404", description = "Teams not found")
     })
     @GetMapping("")
-    public ResponseEntity<Page<Team>> getAll(
+    public ResponseEntity<Page<TeamDTO>> getAll(
             @Parameter(name = "page", description = "Page", required = true) @RequestParam(defaultValue = "0") Integer page,
             @Parameter(name = "size", description = "Page size", required = true) @RequestParam(defaultValue = "10") Integer size,
             @Parameter(name = "sort", description = "Page sort", required = true) @RequestParam(defaultValue = "id") String sort,
@@ -55,7 +56,7 @@ public class TeamController {
             @ApiResponse(responseCode = "404", description = "Team not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Team> getById(@Parameter(name = "id", description = "Team id", required = true) @PathVariable Long id) {
+    public ResponseEntity<TeamDTO> getById(@Parameter(name = "id", description = "Team id", required = true) @PathVariable Long id) {
         try {
             return ResponseEntity.ok(service.getTeamById(id));
         } catch (IllegalArgumentException e){
@@ -68,7 +69,7 @@ public class TeamController {
             @ApiResponse(responseCode = "200", description = "Successful operation")
     })
     @PostMapping("/create")
-    public ResponseEntity<Team> create(@Parameter(name = "team", description = "Team object", required = true) @RequestBody Team team) {
+    public ResponseEntity<TeamDTO> create(@Parameter(name = "team", description = "Team object", required = true) @RequestBody Team team) {
         return ResponseEntity.ok(service.createTeam(team));
     }
 
@@ -79,7 +80,7 @@ public class TeamController {
             @ApiResponse(responseCode = "404", description = "Team not found")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Team> update(@Parameter(name = "id", description = "Team id", required = true) @PathVariable Long id,
+    public ResponseEntity<TeamDTO> update(@Parameter(name = "id", description = "Team id", required = true) @PathVariable Long id,
                                              @Parameter(name = "team", description = "Team object", required = true) @RequestBody Team team) {
 
         try {

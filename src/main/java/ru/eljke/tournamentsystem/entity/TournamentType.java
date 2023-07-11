@@ -1,4 +1,4 @@
-package ru.eljke.tournamentsystem.model;
+package ru.eljke.tournamentsystem.entity;
 
 public enum TournamentType {
     GROUP_STAGE_ONLY,

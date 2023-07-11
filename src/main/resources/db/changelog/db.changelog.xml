@@ -4,105 +4,16 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
 
-    <changeSet id="1" author="eljke">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="user_details" />
-            </not>
-        </preConditions>
-        <createTable tableName="user_details">
-            <column name="id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="username" type="varchar">
-                <constraints unique="true" nullable="false"/>
-            </column>
-            <column name="firstname" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="lastname" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="patronymic" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="birth_date" type="date">
-                <constraints nullable="false"/>
-            </column>
-            <column name="phone" type="varchar"/>
-            <column name="email" type="varchar"/>
-            <column name="password" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="city" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="school" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="grade_number" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="grade_letter" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-            <column name="grade" type="varchar">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
-    <changeSet id="2" author="eljke">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="tournament"/>
-            </not>
-        </preConditions>
-        <createTable tableName="tournament">
-            <column name="id" type="bigint">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="name" type="varchar">
-                <constraints unique="true" nullable="false"/>
-            </column>
-            <column name="city" type="varchar">
-                <constraints/>
-            </column>
-            <column name="organizingSchool" type="varchar">
-                <constraints/>
-            </column>
-            <column name="startDateTime" type="datetime">
-                <constraints/>
-            </column>
-            <column name="endDate" type="date">
-                <constraints/>
-            </column>
-            <column name="minParticipants" type="int">
-                <constraints/>
-            </column>
-            <column name="maxParticipants" type="int">
-                <constraints/>
-            </column>
-            <column name="minAgeToParticipate" type="varchar">
-                <constraints/>
-            </column>
-            <column name="maxAgeToParticipate" type="varchar">
-                <constraints/>
-            </column>
-            <column name="stage" type="varchar">
-                <constraints nullable="false" checkConstraint="tournamentStage IN ('REGISTRATION', 'IN_PROGRESS', 'COMPLETED', 'CANCELED')"/>
-            </column>
-            <column name="subject" type="varchar">
-                <constraints nullable="false" checkConstraint="competitionSubject IN ('FOOTBALL', 'BASKETBALL', 'CHESS')"/>
-            </column>
-            <column name="type" type="varchar">
-                <constraints nullable="false" checkConstraint="tournamentType IN ('GROUP_STAGE_ONLY', 'PLAYOFF_ONLY', 'GROUP_STAGE_AND_PLAYOFF', 'SWISS_SYSTEM')"/>
-            </column>
-            <column name="teamSize" type="int">
-                <constraints/>
-            </column>
-            <column name="isPublic" type="boolean">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
+    <include file="db/changelog/create/create_user_details_table.xml"/>
+    <include file="db/changelog/create/create_user_role_table.xml"/>
+    <include file="db/changelog/create/create_tournament_table.xml"/>
+    <include file="db/changelog/create/create_tournament_allowed_grades_table.xml"/>
+    <include file="db/changelog/create/create_tournament_participating_cities_table.xml"/>
+    <include file="db/changelog/create/create_team_table.xml"/>
+    <include file="db/changelog/create/create_team_members_table.xml"/>
+    <include file="db/changelog/create/create_tournament_solo_participants_table.xml"/>
+    <include file="db/changelog/create/create_tournament_team_participants_table.xml"/>
+    <include file="db/changelog/create/create_result_table.xml"/>
+    <include file="db/changelog/create/create_match_table.xml"/>
+
 </databaseChangeLog>

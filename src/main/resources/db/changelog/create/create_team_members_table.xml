@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="eljke" id="create_team_members_table">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="team_members" />
+            </not>
+        </preConditions>
+        <createTable tableName="team_members">
+            <column name="team_id" type="BIGINT">
+                <constraints nullable="false" references="team(id)" foreignKeyName="team_fk"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false" references="user_details(id)" foreignKeyName="member_fk"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

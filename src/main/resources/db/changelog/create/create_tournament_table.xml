@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="eljke" id="create_tournament_table">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="tournament" />
+            </not>
+        </preConditions>
+        <sql>CREATE TYPE stage AS ENUM ('REGISTRATION', 'IN_PROGRESS', 'COMPLETED', 'CANCELED')</sql>
+        <sql>CREATE TYPE subject AS ENUM ('FOOTBALL', 'BASKETBALL', 'CHESS')</sql>
+        <sql>CREATE TYPE type AS ENUM ('GROUP_STAGE_ONLY', 'PLAYOFF_ONLY', 'GROUP_STAGE_AND_PLAYOFF', 'SWISS_SYSTEM')</sql>
+        <createTable tableName="tournament">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="city" type="VARCHAR(255)"/>
+            <column name="organizingSchool" type="VARCHAR(255)"/>
+            <column name="startDateTime" type="TIMESTAMP"/>
+            <column name="endDate" type="DATE"/>
+            <column name="participatingCities" type="VARCHAR(255)"/>
+            <column name="minParticipants" type="INTEGER"/>
+            <column name="maxParticipants" type="INTEGER"/>
+            <column name="minAgeToParticipate" type="INTEGER"/>
+            <column name="maxAgeToParticipate" type="INTEGER"/>
+            <column name="allowedGrades" type="VARCHAR(255)"/>
+            <column name="stage" type="VARCHAR(255)"/>
+            <column name="subject" type="VARCHAR(255)"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="teamSize" type="INTEGER"/>
+            <column name="isPublic" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

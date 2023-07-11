@@ -3,8 +3,14 @@ package ru.eljke.tournamentsystem.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import ru.eljke.tournamentsystem.model.*;
+import ru.eljke.tournamentsystem.dto.TournamentDTO;
+import ru.eljke.tournamentsystem.dto.UserDTO;
+import ru.eljke.tournamentsystem.exception.ForbiddenException;
+import ru.eljke.tournamentsystem.mapper.TournamentMapper;
+import ru.eljke.tournamentsystem.entity.*;
+import ru.eljke.tournamentsystem.mapper.UserMapper;
 import ru.eljke.tournamentsystem.repository.TeamRepository;
 import ru.eljke.tournamentsystem.repository.TournamentRepository;
 import ru.eljke.tournamentsystem.repository.UserRepository;
@@ -22,25 +28,34 @@ public class TournamentServiceImpl implements TournamentService {
     private final TeamRepository teamRepository;
 
     @Override
-    public Tournament getTournamentById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
+    public TournamentDTO getTournamentById(Long id) {
+        return TournamentMapper.INSTANCE.tournamentToTournamentDTO(repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tournament not found")));
+
     }
 
     @Override
-    public Page<Tournament> getAllTournaments(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<TournamentDTO> getAllTournaments(Pageable pageable) {
+        return repository.findAll(pageable).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Tournament createTournament(Tournament tournament) {
-        return repository.save(tournament);
+    public TournamentDTO createTournament(Tournament tournament, Authentication auth) {
+        UserDTO userDTO = getUserFromAuthentication(auth);
+
+        validateOrganizingSchool(tournament, userDTO);
+
+        return TournamentMapper.INSTANCE.tournamentToTournamentDTO(repository.save(tournament));
     }
 
     @Override
-    public Tournament updateTournament(Tournament tournament, Long id) {
+    public TournamentDTO updateTournament(Tournament tournament, Long id, Authentication auth) {
+        UserDTO userDTO = getUserFromAuthentication(auth);
+
         Tournament existingTournament = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
+
+        validateOrganizingSchool(existingTournament, userDTO);
 
         if (existingTournament.getStage() == TournamentStage.REGISTRATION) {
             if (tournament.getName() != null) {
@@ -109,113 +124,142 @@ public class TournamentServiceImpl implements TournamentService {
             }
             // В данном случае, поле results не изменяется, так как оно обрабатывается отдельно при добавлении результатов.
             // TODO: МОЖНО ДОБАВИТЬ ЛОГИКУ РЕДАКТИРОВАНИЯ ДЛЯ ДРУГИХ СТАДИЙ ТУРНИРА
-            return repository.save(existingTournament);
+            return TournamentMapper.INSTANCE.tournamentToTournamentDTO(repository.save(existingTournament));
         } else {
             throw new UnsupportedOperationException("Tournament cannot be edited at the current stage");
         }
     }
 
     @Override
-    public void cancelTournamentById(Long id) {
+    public void cancelTournamentById(Long id, Authentication auth) {
+        UserDTO userDTO = getUserFromAuthentication(auth);
+
         Tournament tournament = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
 
+        validateOrganizingSchool(tournament, userDTO);
+
         if (tournament.getStage() == TournamentStage.REGISTRATION) {
             repository.cancelTournamentById(id);
+        } else if (tournament.getStage() == TournamentStage.CANCELED) {
+            throw new IllegalArgumentException("Tournament with id = " + id + " is already cancelled");
         } else {
-            throw new UnsupportedOperationException("Tournament cannot be canceled at the current stage");
+            throw new IllegalArgumentException("Tournament cannot be canceled at the current stage");
         }
     }
 
     @Override
-    public void deleteTournamentById(Long id) {
-        repository.findById(id)
+    public void deleteTournamentById(Long id, Authentication auth) {
+        UserDTO userDTO = getUserFromAuthentication(auth);
+
+        Tournament tournament = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found"));
+
+        validateOrganizingSchool(tournament, userDTO);
 
         repository.deleteById(id);
     }
 
     @Override
-    public Page<Tournament> findPastTournaments(Pageable pageable) {
-        return repository.findPastTournaments(pageable);
+    public Page<TournamentDTO> findPastTournaments(Pageable pageable) {
+        return repository.findPastTournaments(pageable).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findCurrentTournaments(Pageable pageable) {
-        return repository.findCurrentTournaments(pageable);
+    public Page<TournamentDTO> findCurrentTournaments(Pageable pageable) {
+        return repository.findCurrentTournaments(pageable).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findUpcomingTournaments(Pageable pageable) {
-        return repository.findUpcomingTournaments(pageable);
+    public Page<TournamentDTO> findUpcomingTournaments(Pageable pageable) {
+        return repository.findUpcomingTournaments(pageable).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findTournamentsBetweenDates(Pageable pageable, LocalDateTime startDate, LocalDateTime endDate) {
-        return repository.findTournamentsBetweenDates(pageable, startDate, endDate);
+    public Page<TournamentDTO> findTournamentsBetweenDates(Pageable pageable, LocalDateTime startDate, LocalDateTime endDate) {
+        return repository.findTournamentsBetweenDates(pageable, startDate, endDate).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findPastTournamentsByUserId(Pageable pageable, Long userId) {
+    public Page<TournamentDTO> findPastTournamentsByUserId(Pageable pageable, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return repository.findPastTournamentsByUser(pageable, user);
+        return repository.findPastTournamentsByUser(pageable, user).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findCurrentTournamentsByUserId(Pageable pageable, Long userId) {
+    public Page<TournamentDTO> findCurrentTournamentsByUserId(Pageable pageable, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return repository.findCurrentTournamentsByUser(pageable, user);
+        return repository.findCurrentTournamentsByUser(pageable, user).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findUpcomingTournamentsByUserId(Pageable pageable, Long userId) {
+    public Page<TournamentDTO> findUpcomingTournamentsByUserId(Pageable pageable, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return repository.findUpcomingTournamentsByUser(pageable, user);
+        return repository.findUpcomingTournamentsByUser(pageable, user).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findTournamentsBetweenDatesByUserId(Pageable pageable, LocalDateTime startDate, LocalDateTime endDate, Long userId) {
+    public Page<TournamentDTO> findTournamentsBetweenDatesByUserId(Pageable pageable, LocalDateTime startDate, LocalDateTime endDate, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return repository.findTournamentsBetweenDatesByUser(pageable, startDate, endDate, user);
+        return repository.findTournamentsBetweenDatesByUser(pageable, startDate, endDate, user).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findPastTournamentsByTeamId(Pageable pageable, Long teamId) {
+    public Page<TournamentDTO> findPastTournamentsByTeamId(Pageable pageable, Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        return repository.findPastTournamentsByTeam(pageable, team);
+        return repository.findPastTournamentsByTeam(pageable, team).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findCurrentTournamentsByTeamId(Pageable pageable, Long teamId) {
+    public Page<TournamentDTO> findCurrentTournamentsByTeamId(Pageable pageable, Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        return repository.findCurrentTournamentsByTeam(pageable, team);
+        return repository.findCurrentTournamentsByTeam(pageable, team).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findUpcomingTournamentsByTeamId(Pageable pageable, Long teamId) {
+    public Page<TournamentDTO> findUpcomingTournamentsByTeamId(Pageable pageable, Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        return repository.findUpcomingTournamentsByTeam(pageable, team);
+        return repository.findUpcomingTournamentsByTeam(pageable, team).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
     @Override
-    public Page<Tournament> findTournamentsBetweenDatesByTeamId(Pageable pageable, LocalDateTime startDate, LocalDateTime endDate, Long teamId) {
+    public Page<TournamentDTO> findTournamentsBetweenDatesByTeamId(Pageable pageable, LocalDateTime startDate, LocalDateTime endDate, Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found"));
 
-        return repository.findTournamentsBetweenDatesByTeam(pageable, startDate, endDate, team);
+        return repository.findTournamentsBetweenDatesByTeam(pageable, startDate, endDate, team).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
+    }
+
+    private UserDTO getUserFromAuthentication(Authentication auth) {
+        if (auth.getAuthorities() != null) {
+            User userFromDB = userRepository.findUserByUsername(auth.getName());
+            if (userFromDB != null) {
+                return UserMapper.INSTANCE.userToUserDTO(userFromDB);
+            }
+        }
+        throw new ForbiddenException("Forbidden: user access not resolved");
+    }
+
+    private void validateOrganizingSchool(Tournament tournament, UserDTO userDTO) {
+        if (!userDTO.getRoles().contains("ADMIN")) {
+            String teacherSchools = userDTO.getSchool();
+            if (tournament.getOrganizingSchool() == null || !teacherSchools.contains(tournament.getOrganizingSchool())) {
+                throw new ForbiddenException("Teacher's school does not match tournament's organizing school");
+            }
+        }
     }
 }

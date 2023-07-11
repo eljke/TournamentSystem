@@ -2,22 +2,26 @@ package ru.eljke.tournamentsystem.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.dto.LoginRequestDTO;
+import ru.eljke.tournamentsystem.dto.UserDTO;
+import ru.eljke.tournamentsystem.entity.User;
 
 import java.util.List;
 
 public interface UserService {
-    User getById(Long id);
+    UserDTO getById(Long id);
     User getByUsername(String username);
-    Page<User> getAll(Pageable pageable);
-    User create(User user);
-    User update(User user, Long id);
+    Page<UserDTO> getAll(Pageable pageable);
+    UserDTO create(User user);
+    UserDTO update(User user, Long id);
     void banById(Long id, String reason);
     void unbanById(Long id);
     void banByUsername(String username, String reason);
     void unbanByUsername(String username);
     void delete(Long id);
-    List<User> search(String param, String keyword);
+    List<UserDTO> searchEverywhere(String keyword);
+    List<UserDTO> searchByParam(String param, String keyword);
+    UserDTO register(LoginRequestDTO request);
     boolean isOldPasswordCorrect(User user, String password);
     void changePassword(User user, String newPassword);
 }

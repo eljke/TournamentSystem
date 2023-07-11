@@ -10,23 +10,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import ru.eljke.tournamentsystem.dto.UserDTO;
-import ru.eljke.tournamentsystem.model.Role;
-import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.entity.Role;
+import ru.eljke.tournamentsystem.entity.User;
 
 @Mapper
 public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    @Mapping(target = "fullname", expression = "java(user.getLastname() + \" \" + user.getFirstname() + \" \" + user.getPatronymic())")
-    @Mapping(source = "birthDate", target = "birthDate", qualifiedByName = "localDateToString")
+    @Mapping(target = "fullname", expression = "java(user.getFullName())")
+    @Mapping(target = "birthDate", expression = "java(localDateToString(user.getBirthDate()))")
     @Mapping(source = "roles", target = "roles", qualifiedByName = "setToString")
     UserDTO userToUserDTO(User user);
     List<UserDTO> usersToUserDTOs(List<User> users);
 
-    @Named("localDateToString")
     default String localDateToString(LocalDate date) {
         if (date == null) {
-            return "";
+            return null;
         }
 
         return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
@@ -39,6 +38,6 @@ public interface UserMapper {
                     .map(Role::name)
                     .collect(Collectors.joining(", "));
         }
-        return "";
+        return null;
     }
 }

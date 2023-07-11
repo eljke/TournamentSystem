@@ -1,4 +1,4 @@
-package ru.eljke.tournamentsystem.model;
+package ru.eljke.tournamentsystem.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,7 +34,7 @@ public class User implements UserDetails {
     private Long id;
     @Schema(name = "User username", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "username", unique = true)
-    @Size(min = 3, max = 16, message = "Username should be at least ${min} symbols")
+    @Size(min = 3, max = 16, message = "Username should be at least ${min} and max ${max} symbols")
     private String username;
     @Schema(name = "User firstname", requiredMode = Schema.RequiredMode.REQUIRED)
     @Column(name = "firstname")
@@ -56,7 +56,6 @@ public class User implements UserDetails {
     @Column(name = "email")
     private String email;
     @Schema(name = "User password", requiredMode = Schema.RequiredMode.REQUIRED)
-    @JsonIgnore
     @Column(name = "password")
     private String password;
     @Schema(name = "User city", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -97,12 +96,12 @@ public class User implements UserDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(firstname, user.firstname) && Objects.equals(lastname, user.lastname) && Objects.equals(patronymic, user.patronymic) && Objects.equals(birthDate, user.birthDate) && Objects.equals(phone, user.phone) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(city, user.city) && Objects.equals(school, user.school) && gradeNumber == user.gradeNumber && gradeLetter == user.gradeLetter && Objects.equals(grade, user.grade) && Objects.equals(roles, user.roles);
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(firstname, user.firstname) && Objects.equals(lastname, user.lastname) && Objects.equals(patronymic, user.patronymic) && Objects.equals(birthDate, user.birthDate) && Objects.equals(phone, user.phone) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(city, user.city) && Objects.equals(school, user.school) && gradeNumber == user.gradeNumber && gradeLetter == user.gradeLetter && Objects.equals(grade, user.grade) && Objects.equals(roles, user.roles) && Objects.equals(isBanned, user.isBanned) && Objects.equals(banReason, user.banReason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, firstname, lastname, patronymic, birthDate, phone, email, password, city, school, gradeNumber, gradeLetter, grade, roles);
+        return Objects.hash(id, username, firstname, lastname, patronymic, birthDate, phone, email, password, city, school, gradeNumber, gradeLetter, grade, roles, isBanned, banReason);
     }
 
     @Override
@@ -146,6 +145,35 @@ public class User implements UserDetails {
 
     @JsonIgnore
     public String getFullName() {
-        return firstname + " " + lastname + " " + patronymic;
+        StringBuilder fullNameBuilder = new StringBuilder();
+
+        if (lastname != null && !lastname.trim().isEmpty()) {
+            fullNameBuilder.append(lastname);
+        }
+
+        if (firstname != null && !firstname.trim().isEmpty()) {
+            if (fullNameBuilder.length() > 0) {
+                fullNameBuilder.append(" ");
+            }
+            fullNameBuilder.append(firstname);
+        }
+
+        if (patronymic != null && !patronymic.trim().isEmpty()) {
+            if (fullNameBuilder.length() > 0) {
+                fullNameBuilder.append(" ");
+            }
+            fullNameBuilder.append(patronymic);
+        }
+
+        String fullName = fullNameBuilder.toString();
+
+        if (fullName.isEmpty()) {
+            if (this.username != null) {
+                return this.username;
+            }
+            return null;
+        } else {
+            return fullName;
+        }
     }
 }

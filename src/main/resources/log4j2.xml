@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <!-- Другие настройки логгера -->
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <!-- Добавьте следующую строку с указанием кодировки -->
+            <Charset>UTF-8</Charset>
+        </Console>
+    </Appenders>
+    <!-- Конфигурация логгера -->
+</Configuration>

@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.eljke.tournamentsystem.model.ChangePasswordRequest;
-import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.entity.ChangePasswordRequest;
+import ru.eljke.tournamentsystem.entity.User;
 import ru.eljke.tournamentsystem.service.UserService;
 
 import java.security.Principal;

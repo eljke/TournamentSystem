@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.eljke.tournamentsystem.dto.UserDTO;
-import ru.eljke.tournamentsystem.mapper.UserMapper;
-import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.entity.User;
 import ru.eljke.tournamentsystem.service.UserService;
 
 import java.nio.charset.StandardCharsets;
@@ -27,6 +27,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
+@Log4j2
 @Tag(name = "Admin", description = "Admin panel to manage operations with members")
 public class UserController {
     private final UserService service;
@@ -54,8 +55,8 @@ public class UserController {
         if (service.getAll(pageable).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            Page<User> users = service.getAll(pageable);
-            return ResponseEntity.ok(users.map(UserMapper.INSTANCE::userToUserDTO));
+            Page<UserDTO> users = service.getAll(pageable);
+            return ResponseEntity.ok(users);
         }
     }
 
@@ -64,13 +65,18 @@ public class UserController {
             @Parameter(name = "param", description = "Parameter for search") @RequestParam(required = false) String param,
             @Parameter(name = "keyword", description = "Keyword for search") @RequestParam(required = false) String keyword) {
 
-        List<User> userEntities = service.search(param, keyword);
-        List<UserDTO> userDTOS = UserMapper.INSTANCE.usersToUserDTOs(userEntities);
+        List<UserDTO> userDTOs;
 
-        if (userEntities.isEmpty()) {
+        if (param == null) {
+            userDTOs = service.searchEverywhere(keyword);
+        } else {
+            userDTOs = service.searchByParam(param, keyword);
+        }
+
+        if (userDTOs.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(userDTOS);
+            return ResponseEntity.ok(userDTOs);
         }
     }
 
@@ -81,9 +87,9 @@ public class UserController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getById(@Parameter(name = "id", description = "User id", required = true) @PathVariable Long id) {
-        User user = service.getById(id);
-        if (user != null) {
-            UserDTO userDTO = UserMapper.INSTANCE.userToUserDTO(user);
+        UserDTO userDTO = service.getById(id);
+        log.info(userDTO);
+        if (userDTO != null) {
             return ResponseEntity.ok(userDTO);
         } else {
             return ResponseEntity.notFound().build();
@@ -96,7 +102,7 @@ public class UserController {
     })
     @PostMapping("/create")
     public ResponseEntity<UserDTO> create(@Parameter(name = "user", description = "User object", required = true) @RequestBody User user) {
-        return ResponseEntity.ok(UserMapper.INSTANCE.userToUserDTO(service.create(user)));
+        return ResponseEntity.ok(service.create(user));
     }
 
     @Operation(summary = "Update user by ID", description = "Update a single user by their ID")
@@ -108,7 +114,7 @@ public class UserController {
     public ResponseEntity<UserDTO> update(@Parameter(name = "id", description = "User id", required = true) @PathVariable Long id,
                                        @Parameter(name = "user", description = "User object", required = true) @RequestBody User user) {
         if (service.getById(id) != null) {
-            return ResponseEntity.ok(UserMapper.INSTANCE.userToUserDTO(service.update(user, id)));
+            return ResponseEntity.ok(service.update(user, id));
         } else {
             return ResponseEntity.notFound().build();
         }

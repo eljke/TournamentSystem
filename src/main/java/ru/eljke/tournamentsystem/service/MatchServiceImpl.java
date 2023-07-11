@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.eljke.tournamentsystem.model.Match;
+import ru.eljke.tournamentsystem.dto.MatchDTO;
+import ru.eljke.tournamentsystem.entity.Match;
+import ru.eljke.tournamentsystem.entity.Tournament;
+import ru.eljke.tournamentsystem.mapper.MatchMapper;
 import ru.eljke.tournamentsystem.repository.*;
 
 
@@ -15,40 +18,47 @@ public class MatchServiceImpl implements MatchService {
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
     private final ResultRepository resultRepository;
+    private final TournamentRepository tournamentRepository;
 
     @Override
-    public Match getMatchById(Long matchId) {
-        return repository.findById(matchId)
-                .orElseThrow(() -> new IllegalArgumentException("Match not found"));
+    public MatchDTO getMatchById(Long matchId) {
+        return MatchMapper.INSTANCE.matchToMatchDTO(repository.findById(matchId)
+                .orElseThrow(() -> new IllegalArgumentException("Match not found")));
     }
 
     @Override
-    public Page<Match> getAllMatches(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<MatchDTO> getAllMatches(Pageable pageable) {
+        return repository.findAll(pageable).map(MatchMapper.INSTANCE::matchToMatchDTO);
     }
 
     @Override
-    public Match createMatch(Match match) {
-        return setMatchParticipantsAndResult(match, match);
+    public MatchDTO createMatch(Match match, Long tournamentId) {
+        return setMatchParticipantsAndResult(match, match, tournamentId);
     }
 
     @Override
-    public Match updateMatchById(Match match, Long matchId) {
+    public MatchDTO updateMatchById(Match match, Long matchId, Long tournamentId) {
         Match matchToUpdate = repository.findById(matchId)
                 .orElseThrow(() -> new IllegalArgumentException("Match not found"));
 
         if (match.getDateTime() != null) {
             matchToUpdate.setDateTime(match.getDateTime());
         }
-        return setMatchParticipantsAndResult(match, matchToUpdate);
+        return setMatchParticipantsAndResult(match, matchToUpdate, tournamentId);
     }
 
     @Override
-    public void deleteMatchById(Long matchId) {
+    public void deleteMatchById(Long matchId, Long tournamentId) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new IllegalArgumentException(""));
+        tournament.removeMatch(repository.findById(matchId)
+                .orElseThrow(() -> new IllegalArgumentException("No tournament found")));
+
         repository.deleteById(matchId);
     }
 
-    private Match setMatchParticipantsAndResult(Match match, Match matchToUpdate) {
+    @Override
+    public MatchDTO setMatchParticipantsAndResult(Match match, Match matchToUpdate, Long tournamentId) {
         // TODO: ДОП. ЛОГИКА ОБРАБОТКИ
         if (match.getSoloParticipant1() != null) {
             matchToUpdate.setSoloParticipant1(userRepository.findById(match.getSoloParticipant1().getId())
@@ -70,6 +80,10 @@ public class MatchServiceImpl implements MatchService {
             matchToUpdate.setResult(resultRepository.save(match.getResult()));
         }
 
-        return repository.save(matchToUpdate);
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new IllegalArgumentException("No tournament found"));
+        tournament.addMatch(match);
+
+        return MatchMapper.INSTANCE.matchToMatchDTO(repository.save(matchToUpdate));
     }
 }

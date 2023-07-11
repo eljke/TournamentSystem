@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet author="eljke" id="create_match_table">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="match" />
+            </not>
+        </preConditions>
+        <createTable tableName="match">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="dateTime" type="TIMESTAMP"/>
+            <column name="teamParticipant1_id" type="BIGINT">
+                <constraints nullable="true" references="team(id)" foreignKeyName="team1_fk"/>
+            </column>
+            <column name="teamParticipant2_id" type="BIGINT">
+                <constraints nullable="true" references="team(id)" foreignKeyName="team2"/>
+            </column>
+            <column name="soloParticipant1_id" type="BIGINT">
+                <constraints nullable="true" references="user_details(id)" foreignKeyName="solo1_fk"/>
+            </column>
+            <column name="soloParticipant2_id" type="BIGINT">
+                <constraints nullable="true" references="user_details(id)" foreignKeyName="solo2_fk"/>
+            </column>
+            <column name="result_id" type="BIGINT">
+                <constraints nullable="true" references="result(id)" foreignKeyName="result_fk"/>
+            </column>
+            <column name="tournament_id" type="BIGINT">
+                <constraints nullable="false" references="tournament(id)" foreignKeyName="tournament_fk"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

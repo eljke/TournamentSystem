@@ -1,4 +1,4 @@
-package ru.eljke.tournamentsystem.model;
+package ru.eljke.tournamentsystem.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -13,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import ru.eljke.tournamentsystem.model.*;
+import ru.eljke.tournamentsystem.dto.MatchDTO;
+import ru.eljke.tournamentsystem.dto.TournamentDTO;
+import ru.eljke.tournamentsystem.entity.*;
 import ru.eljke.tournamentsystem.service.MatchService;
 import ru.eljke.tournamentsystem.service.TournamentService;
 
@@ -30,7 +32,7 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "Matches not found")
     })
     @GetMapping("/matches")
-    public ResponseEntity<Page<Match>> getAll(
+    public ResponseEntity<Page<MatchDTO>> getAll(
             @Parameter(name = "page", description = "Page", required = true) @RequestParam(defaultValue = "0") Integer page,
             @Parameter(name = "size", description = "Page size", required = true) @RequestParam(defaultValue = "10") Integer size,
             @Parameter(name = "sort", description = "Page sort", required = true) @RequestParam(defaultValue = "id") String sort,
@@ -57,7 +59,7 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "Match not found")
     })
     @GetMapping("/{tournamentId}/matches/{id}")
-    public ResponseEntity<Match> getById(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
+    public ResponseEntity<MatchDTO> getById(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
                                          @Parameter(name = "match id", description = "Match ID", required = true) @PathVariable Long id) {
         if (matchService.getMatchById(id) != null) {
             return ResponseEntity.ok(matchService.getMatchById(id));
@@ -71,21 +73,22 @@ public class MatchController {
             @ApiResponse(responseCode = "200", description = "Successful operation")
     })
     @PostMapping("/{tournamentId}/matches/create")
-    public ResponseEntity<Match> create(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
+    public ResponseEntity<MatchDTO> create(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
                                         @Parameter(name = "match", description = "Match object", required = true) @RequestBody Match match,
                                              @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        Tournament tournament = tournamentService.getTournamentById(tournamentId);
+
         // Проверка школы турнира на соответствие школе учителя
         User user = (User) auth.getPrincipal();
         if (!user.getRoles().contains(Role.ADMIN)) {
             String teacherSchool = user.getSchool();
 
-            if (tournament.getOrganizingSchool() == null || !tournament.getOrganizingSchool().equals(teacherSchool)) {
+            if (tournamentService.getTournamentById(tournamentId).getOrganizingSchool() == null
+                    || !tournamentService.getTournamentById(tournamentId).getOrganizingSchool().equals(teacherSchool)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
-        tournament.addMatch(match);
-        return ResponseEntity.ok(matchService.createMatch(match));
+
+        return ResponseEntity.ok(matchService.createMatch(match, tournamentService.getTournamentById(tournamentId).getId()));
     }
 
     @Operation(summary = "Update match by ID", description = "Update a single match by their ID")
@@ -94,21 +97,22 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "Match not found")
     })
     @PutMapping("/{tournamentId}/matches/{id}")
-    public ResponseEntity<Match> update(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
+    public ResponseEntity<MatchDTO> update(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
                                         @Parameter(name = "match id", description = "Match ID", required = true) @PathVariable Long id,
                                              @Parameter(name = "match", description = "Match object", required = true) @RequestBody Match match,
                                              @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        Tournament tournament = tournamentService.getTournamentById(tournamentId);
+        TournamentDTO tournamentDTO = tournamentService.getTournamentById(tournamentId);
         // Проверка школы турнира на соответствие школе учителя
         User user = (User) auth.getPrincipal();
         if (!user.getRoles().contains(Role.ADMIN)) {
             String teacherSchool = user.getSchool();
-            if (tournament.getOrganizingSchool() == null || !tournament.getOrganizingSchool().equals(teacherSchool)) {
+            if (tournamentDTO.getOrganizingSchool() == null
+                    || !tournamentDTO.getOrganizingSchool().equals(teacherSchool)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
         if (matchService.getMatchById(id) != null) {
-            return ResponseEntity.ok(matchService.updateMatchById(match, id));
+            return ResponseEntity.ok(matchService.updateMatchById(match, id, tournamentId));
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -123,20 +127,20 @@ public class MatchController {
     public ResponseEntity<String> delete(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
                                          @Parameter(name = "match id", description = "Match ID", required = true) @PathVariable Long id,
                                          @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        Tournament tournament = tournamentService.getTournamentById(tournamentId);
-        Match matchToDelete = matchService.getMatchById(id);
+        TournamentDTO tournamentDTO = tournamentService.getTournamentById(tournamentId);
+        MatchDTO matchToDelete = matchService.getMatchById(id);
         // Проверка школы турнира на соответствие школе учителя
         User user = (User) auth.getPrincipal();
         if (!user.getRoles().contains(Role.ADMIN)) {
             String teacherSchool = user.getSchool();
 
-            if (tournament.getOrganizingSchool() == null || !tournament.getOrganizingSchool().equals(teacherSchool)) {
+            if (tournamentDTO.getOrganizingSchool() == null
+                    || !tournamentDTO.getOrganizingSchool().equals(teacherSchool)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
         if (matchToDelete != null) {
-            tournament.removeMatch(matchToDelete);
-            matchService.deleteMatchById(id);
+            matchService.deleteMatchById(id, tournamentId);
             return ResponseEntity.status(HttpStatus.OK).body("Successfully!");
         } else {
             return ResponseEntity.notFound().build();

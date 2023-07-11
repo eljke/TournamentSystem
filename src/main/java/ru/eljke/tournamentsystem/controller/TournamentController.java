@@ -14,11 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.eljke.tournamentsystem.dto.TournamentDTO;
-import ru.eljke.tournamentsystem.mapper.TournamentMapper;
-import ru.eljke.tournamentsystem.model.Role;
-import ru.eljke.tournamentsystem.model.Tournament;
-import ru.eljke.tournamentsystem.model.TournamentStage;
-import ru.eljke.tournamentsystem.model.User;
+import ru.eljke.tournamentsystem.entity.Tournament;
 import ru.eljke.tournamentsystem.service.TournamentService;
 
 import java.time.LocalDateTime;
@@ -47,8 +43,8 @@ public class TournamentController {
         if (service.getAllTournaments(pageable).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            Page<Tournament> tournaments = service.getAllTournaments(pageable);
-            return ResponseEntity.ok(tournaments.map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            Page<TournamentDTO> tournamentsDTO = service.getAllTournaments(pageable);
+            return ResponseEntity.ok(tournamentsDTO);
         }
     }
 
@@ -59,9 +55,8 @@ public class TournamentController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<TournamentDTO> getById(@Parameter(name = "id", description = "Tournament id", required = true) @PathVariable Long id) {
-        Tournament tournament = service.getTournamentById(id);
-        if (tournament != null) {
-            TournamentDTO tournamentDTO = TournamentMapper.INSTANCE.tournamentToTournamentDTO(tournament);
+        TournamentDTO tournamentDTO = service.getTournamentById(id);
+        if (tournamentDTO != null) {
             return ResponseEntity.ok(tournamentDTO);
         } else {
             return ResponseEntity.notFound().build();
@@ -75,18 +70,11 @@ public class TournamentController {
     @PostMapping("/create")
     public ResponseEntity<TournamentDTO> create(@Parameter(name = "tournament", description = "Tournament object", required = true) @RequestBody Tournament tournament,
                                              @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        // Проверка школы турнира на соответствие школе учителя
-        User user = (User) auth.getPrincipal();
-        if (!user.getRoles().contains(Role.ADMIN)) {
-            String teacherSchool = user.getSchool();
-            if (tournament.getOrganizingSchool() == null || !tournament.getOrganizingSchool().equals(teacherSchool)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+        TournamentDTO tournamentToCreateDTO = service.createTournament(tournament, auth);
+        if (tournamentToCreateDTO == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        Tournament tournamentToCreate = service.createTournament(tournament);
-        TournamentDTO tournamentDTO = TournamentMapper.INSTANCE.tournamentToTournamentDTO(tournamentToCreate);
-
-        return ResponseEntity.ok(tournamentDTO);
+        return ResponseEntity.ok(tournamentToCreateDTO);
     }
 
     @Operation(summary = "Update tournament by ID", description = "Update a single tournament by their ID")
@@ -98,21 +86,11 @@ public class TournamentController {
     public ResponseEntity<TournamentDTO> update(@Parameter(name = "id", description = "Tournament id", required = true) @PathVariable Long id,
                                              @Parameter(name = "tournament", description = "Tournament object", required = true) @RequestBody Tournament tournament,
                                              @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        // Проверка школы турнира на соответствие школе учителя
-        User user = (User) auth.getPrincipal();
-        if (!user.getRoles().contains(Role.ADMIN)) {
-            Tournament tournamentToUpdate = service.getTournamentById(id);
-            String teacherSchool = user.getSchool();
-            if (tournamentToUpdate.getOrganizingSchool() == null || !tournamentToUpdate.getOrganizingSchool().equals(teacherSchool)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+        TournamentDTO tournamentToUpdateDTO = service.updateTournament(tournament, id, auth);
+        if (tournamentToUpdateDTO == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        if (service.getTournamentById(id) != null) {
-            TournamentDTO tournamentDTO = TournamentMapper.INSTANCE.tournamentToTournamentDTO(service.updateTournament(tournament, id));
-            return ResponseEntity.ok(tournamentDTO);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(tournamentToUpdateDTO);
     }
 
     @Operation(summary = "Cancel tournament by ID", description = "Cancels tournament by its ID")
@@ -124,25 +102,8 @@ public class TournamentController {
     @PutMapping("/{id}/cancel")
     public ResponseEntity<String> cancel(@Parameter(name = "id", description = "Tournament id", required = true) @PathVariable Long id,
                                          @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        Tournament tournamentToCancel = service.getTournamentById(id);
-        // Проверка школы турнира на соответствие школе учителя
-        User user = (User) auth.getPrincipal();
-        if (!user.getRoles().contains(Role.ADMIN)) {
-            String teacherSchool = user.getSchool();
-            if (tournamentToCancel.getOrganizingSchool() == null || !tournamentToCancel.getOrganizingSchool().equals(teacherSchool)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
-        if (tournamentToCancel != null) {
-            if (tournamentToCancel.getStage() != TournamentStage.CANCELED) {
-                service.cancelTournamentById(id);
-                return ResponseEntity.status(HttpStatus.OK).body("Successfully canceled tournament with id = " + id);
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tournament with id = " + id + " is already canceled");
-            }
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        service.deleteTournamentById(id, auth);
+        return ResponseEntity.ok("Successfully canceled tournament with id = " + id);
     }
 
     @Operation(summary = "Delete tournament by ID", description = "Deletes tournament by its ID")
@@ -153,21 +114,9 @@ public class TournamentController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@Parameter(name = "id", description = "Tournament id", required = true) @PathVariable Long id,
                                          @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        Tournament tournamentToDelete = service.getTournamentById(id);
-        // Проверка школы турнира на соответствие школе учителя
-        User user = (User) auth.getPrincipal();
-        if (!user.getRoles().contains(Role.ADMIN)) {
-            String teacherSchool = user.getSchool();
-            if (tournamentToDelete.getOrganizingSchool() == null || !tournamentToDelete.getOrganizingSchool().equals(teacherSchool)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
-        if (tournamentToDelete != null) {
-            service.deleteTournamentById(id);
-            return ResponseEntity.status(HttpStatus.OK).body("Successfully!");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+
+            service.deleteTournamentById(id, auth);
+            return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted tournament with id = " + id);
     }
 
     @Operation(summary = "Get past tournaments", description = "Returns past tournaments pageable")
@@ -186,7 +135,7 @@ public class TournamentController {
         if (service.findPastTournaments(pageable).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findPastTournaments(pageable).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findPastTournaments(pageable));
         }
     }
 
@@ -206,7 +155,7 @@ public class TournamentController {
         if (service.findCurrentTournaments(pageable).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findCurrentTournaments(pageable).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findCurrentTournaments(pageable));
         }
     }
 
@@ -226,7 +175,7 @@ public class TournamentController {
         if (service.findUpcomingTournaments(pageable).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findUpcomingTournaments(pageable).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findUpcomingTournaments(pageable));
         }
     }
 
@@ -252,7 +201,7 @@ public class TournamentController {
         if (service.findTournamentsBetweenDates(pageable, startDate, endDate).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findTournamentsBetweenDates(pageable, startDate, endDate).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findTournamentsBetweenDates(pageable, startDate, endDate));
         }
     }
 
@@ -273,7 +222,7 @@ public class TournamentController {
         if (service.findPastTournamentsByUserId(pageable, userId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findPastTournamentsByUserId(pageable, userId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findPastTournamentsByUserId(pageable, userId));
         }
     }
 
@@ -294,7 +243,7 @@ public class TournamentController {
         if (service.findCurrentTournamentsByUserId(pageable, userId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findCurrentTournamentsByUserId(pageable, userId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findCurrentTournamentsByUserId(pageable, userId));
         }
     }
 
@@ -315,7 +264,7 @@ public class TournamentController {
         if (service.findUpcomingTournamentsByUserId(pageable, userId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findUpcomingTournamentsByUserId(pageable, userId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findUpcomingTournamentsByUserId(pageable, userId));
         }
     }
 
@@ -342,7 +291,7 @@ public class TournamentController {
         if (service.findTournamentsBetweenDatesByUserId(pageable, startDate, endDate, userId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findTournamentsBetweenDatesByUserId(pageable, startDate, endDate, userId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findTournamentsBetweenDatesByUserId(pageable, startDate, endDate, userId));
         }
     }
 
@@ -363,7 +312,7 @@ public class TournamentController {
         if (service.findPastTournamentsByTeamId(pageable, teamId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findPastTournamentsByTeamId(pageable, teamId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findPastTournamentsByTeamId(pageable, teamId));
         }
     }
 
@@ -384,7 +333,7 @@ public class TournamentController {
         if (service.findCurrentTournamentsByTeamId(pageable, teamId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findCurrentTournamentsByTeamId(pageable, teamId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findCurrentTournamentsByTeamId(pageable, teamId));
         }
     }
 
@@ -405,7 +354,7 @@ public class TournamentController {
         if (service.findUpcomingTournamentsByTeamId(pageable, teamId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findUpcomingTournamentsByTeamId(pageable, teamId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findUpcomingTournamentsByTeamId(pageable, teamId));
         }
     }
 
@@ -432,7 +381,7 @@ public class TournamentController {
         if (service.findTournamentsBetweenDatesByTeamId(pageable, startDate, endDate, teamId).isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return ResponseEntity.ok(service.findTournamentsBetweenDatesByTeamId(pageable, startDate, endDate, teamId).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO));
+            return ResponseEntity.ok(service.findTournamentsBetweenDatesByTeamId(pageable, startDate, endDate, teamId));
         }
     }
 

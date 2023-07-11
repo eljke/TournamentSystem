@@ -10,13 +10,11 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserDTO {
-    private Long id;
-    private String username;
-    private String fullname;
-    private String birthDate;
-    private String city;
-    private String school;
-    private String grade;
-    private String roles;
+public class MatchDTO {
+    private String dateTime;
+    private String participant1;
+    private String participant2;
+    private String team1;
+    private String team2;
+    private ResultDTO result;
 }
