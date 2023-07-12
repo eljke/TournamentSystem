@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,15 +26,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@Log4j2
-@Tag(name = "Admin", description = "Admin panel to manage operations with members")
+@Tag(name = "Users", description = "Operations with users")
 public class UserController {
     private final UserService service;
 
-    @Operation(summary = "Get all members by pages", description = "Returns all members pageable")
+    @Operation(summary = "Get all users by pages", description = "Returns all users pageable")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "404", description = "Members not found")
+            @ApiResponse(responseCode = "404", description = "Users not found")
     })
     @GetMapping("")
     public ResponseEntity<Page<UserDTO>> findAllPageable(
@@ -60,6 +58,11 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "Search users", description = "Search users by param and keyword")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "404", description = "Users not found")
+    })
     @GetMapping("/search")
     public ResponseEntity<List<UserDTO>> searchMembers(
             @Parameter(name = "param", description = "Parameter for search") @RequestParam(required = false) String param,
@@ -88,7 +91,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getById(@Parameter(name = "id", description = "User id", required = true) @PathVariable Long id) {
         UserDTO userDTO = service.getById(id);
-        log.info(userDTO);
+
         if (userDTO != null) {
             return ResponseEntity.ok(userDTO);
         } else {

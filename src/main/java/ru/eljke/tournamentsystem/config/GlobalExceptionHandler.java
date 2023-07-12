@@ -13,9 +13,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorDTO> handleAccessDeniedException(AccessDeniedException ex) {
-        throw new ForbiddenException("Access denied");
+        ApiErrorDTO error = new ApiErrorDTO(ex.getMessage(), HttpStatus.FORBIDDEN);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
+    @ExceptionHandler(IllegalAccessException.class)
+    public ResponseEntity<ApiErrorDTO> handleIllegalAccessException(IllegalAccessException ex) {
+        ApiErrorDTO error = new ApiErrorDTO(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ApiErrorDTO> handleForbiddenException(ForbiddenException ex) {
         ApiErrorDTO error = new ApiErrorDTO(ex.getMessage(), HttpStatus.FORBIDDEN);
@@ -24,8 +30,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ApiErrorDTO error = new ApiErrorDTO("Illegal argument exception\n" + ex.getMessage(), HttpStatus.BAD_REQUEST);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        ApiErrorDTO error = new ApiErrorDTO("Illegal argument exception: " + ex.getMessage(), HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<ApiErrorDTO> handleUnsupportedOperationException(UnsupportedOperationException ex) {
+        ApiErrorDTO error = new ApiErrorDTO("Unsupported Operation Exception: " + ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(Exception.class)

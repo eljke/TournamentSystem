@@ -11,6 +11,7 @@ import lombok.*;
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MatchDTO {
+    private Long id;
     private String dateTime;
     private String participant1;
     private String participant2;

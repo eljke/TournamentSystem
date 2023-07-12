@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import ru.eljke.tournamentsystem.dto.TournamentDTO;
+import ru.eljke.tournamentsystem.dto.UserDTO;
 import ru.eljke.tournamentsystem.entity.Tournament;
 
 import java.time.LocalDateTime;
@@ -27,4 +28,5 @@ public interface TournamentService {
     Page<TournamentDTO> findCurrentTournamentsByTeamId(Pageable pageable, Long teamId);
     Page<TournamentDTO> findUpcomingTournamentsByTeamId(Pageable pageable, Long teamId);
     Page<TournamentDTO> findTournamentsBetweenDatesByTeamId(Pageable pageable, LocalDateTime startDate, LocalDateTime endDate, Long teamId);
+    UserDTO getUserFromAuthentication(Authentication auth);
 }

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 @RestController
 @RequestMapping("/tournaments")
 @RequiredArgsConstructor
+@Tag(name = "Tournaments", description = "Operations with tournaments")
 public class TournamentController {
     private final TournamentService service;
 
@@ -65,7 +67,8 @@ public class TournamentController {
 
     @Operation(summary = "Create tournament", description = "Create tournament with given body")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successful operation")
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping("/create")
     public ResponseEntity<TournamentDTO> create(@Parameter(name = "tournament", description = "Tournament object", required = true) @RequestBody Tournament tournament,
@@ -80,7 +83,8 @@ public class TournamentController {
     @Operation(summary = "Update tournament by ID", description = "Update a single tournament by their ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "404", description = "Tournament not found")
+            @ApiResponse(responseCode = "404", description = "Tournament not found"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PutMapping("/{id}")
     public ResponseEntity<TournamentDTO> update(@Parameter(name = "id", description = "Tournament id", required = true) @PathVariable Long id,
@@ -97,12 +101,13 @@ public class TournamentController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "Tournament is already canceled"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "404", description = "Tournament not found")
     })
     @PutMapping("/{id}/cancel")
     public ResponseEntity<String> cancel(@Parameter(name = "id", description = "Tournament id", required = true) @PathVariable Long id,
                                          @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        service.deleteTournamentById(id, auth);
+        service.cancelTournamentById(id, auth);
         return ResponseEntity.ok("Successfully canceled tournament with id = " + id);
     }
 

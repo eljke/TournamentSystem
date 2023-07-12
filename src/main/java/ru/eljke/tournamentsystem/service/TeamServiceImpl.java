@@ -13,6 +13,7 @@ import ru.eljke.tournamentsystem.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,11 +35,16 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public TeamDTO createTeam(Team team) {
         List<User> members = new ArrayList<>();
-        // TODO: РЕАЛИЗОВАТЬ ДОБАВЛЕНИЕ ВСЕХ ЮЗЕРОВ, А НЕ ТОЛЬКО 1
-        members.add(userRepository.findById(team.getMembers().get(0).getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found")));
+        if (team.getMembers() != null) {
+            for (User user : team.getMembers()) {
+                members.add(userRepository.findById(user.getId())
+                        .orElseThrow(() -> new IllegalArgumentException("User with id = " + user.getId() + " not found")));
+            }
+            team.setMembers(members);
+        } else {
+            throw new IllegalArgumentException("Team has no members");
+        }
 
-        team.setMembers(members);
         return TeamMapper.INSTANCE.teamToTeamDTO(repository.save(team));
     }
 
@@ -51,7 +57,11 @@ public class TeamServiceImpl implements TeamService {
             teamToUpdate.setName(team.getName());
         }
         if (team.getMembers() != null) {
-            teamToUpdate.setMembers(team.getMembers());
+            teamToUpdate.setMembers(team.getMembers().stream()
+                    .map(user -> userRepository.findById(user.getId())
+                            .orElseThrow(() -> new IllegalArgumentException("User with id = " + user.getId() + " not found")))
+                    .collect(Collectors.toList())
+            );
         }
 
         return TeamMapper.INSTANCE.teamToTeamDTO(repository.save(teamToUpdate));

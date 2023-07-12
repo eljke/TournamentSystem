@@ -14,17 +14,17 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints nullable="false" primaryKey="true"/>
             </column>
-            <column name="dateTime" type="TIMESTAMP"/>
-            <column name="teamParticipant1_id" type="BIGINT">
+            <column name="date_time" type="TIMESTAMP"/>
+            <column name="team_participant1_id" type="BIGINT">
                 <constraints nullable="true" references="team(id)" foreignKeyName="team1_fk"/>
             </column>
-            <column name="teamParticipant2_id" type="BIGINT">
+            <column name="team_participant2_id" type="BIGINT">
                 <constraints nullable="true" references="team(id)" foreignKeyName="team2"/>
             </column>
-            <column name="soloParticipant1_id" type="BIGINT">
+            <column name="solo_participant1_id" type="BIGINT">
                 <constraints nullable="true" references="user_details(id)" foreignKeyName="solo1_fk"/>
             </column>
-            <column name="soloParticipant2_id" type="BIGINT">
+            <column name="solo_participant2_id" type="BIGINT">
                 <constraints nullable="true" references="user_details(id)" foreignKeyName="solo2_fk"/>
             </column>
             <column name="result_id" type="BIGINT">

@@ -19,20 +19,20 @@
             </column>
             <column name="name" type="VARCHAR(255)"/>
             <column name="city" type="VARCHAR(255)"/>
-            <column name="organizingSchool" type="VARCHAR(255)"/>
-            <column name="startDateTime" type="TIMESTAMP"/>
-            <column name="endDate" type="DATE"/>
-            <column name="participatingCities" type="VARCHAR(255)"/>
-            <column name="minParticipants" type="INTEGER"/>
-            <column name="maxParticipants" type="INTEGER"/>
-            <column name="minAgeToParticipate" type="INTEGER"/>
-            <column name="maxAgeToParticipate" type="INTEGER"/>
-            <column name="allowedGrades" type="VARCHAR(255)"/>
+            <column name="organizing_school" type="VARCHAR(255)"/>
+            <column name="start_date_time" type="TIMESTAMP"/>
+            <column name="end_date" type="DATE"/>
+            <column name="participating_cities" type="VARCHAR(255)"/>
+            <column name="min_participants" type="INTEGER"/>
+            <column name="max_participants" type="INTEGER"/>
+            <column name="min_age_to_participate" type="INTEGER"/>
+            <column name="max_age_to_participate" type="INTEGER"/>
+            <column name="allowed_grades" type="VARCHAR(255)"/>
             <column name="stage" type="VARCHAR(255)"/>
             <column name="subject" type="VARCHAR(255)"/>
             <column name="type" type="VARCHAR(255)"/>
-            <column name="teamSize" type="INTEGER"/>
-            <column name="isPublic" type="BOOLEAN"/>
+            <column name="team_size" type="INTEGER"/>
+            <column name="is_public" type="BOOLEAN"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>

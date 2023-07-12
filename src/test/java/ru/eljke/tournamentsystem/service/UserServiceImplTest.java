@@ -25,7 +25,6 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTest {
     @Mock
     private UserRepository repository;
-
     @InjectMocks
     private UserServiceImpl memberService;
 
@@ -75,7 +74,6 @@ class UserServiceImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
 
-        // Создаем объект Page с помощью конструктора PageImpl
         Page<User> page = new PageImpl<>(userEntities, pageable, userEntities.size());
 
         when(repository.findAll(pageable)).thenReturn(page);

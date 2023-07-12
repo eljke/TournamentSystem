@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import ru.eljke.tournamentsystem.dto.TournamentDTO;
 import ru.eljke.tournamentsystem.dto.UserDTO;
@@ -18,6 +19,7 @@ import ru.eljke.tournamentsystem.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -31,7 +33,6 @@ public class TournamentServiceImpl implements TournamentService {
     public TournamentDTO getTournamentById(Long id) {
         return TournamentMapper.INSTANCE.tournamentToTournamentDTO(repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found")));
-
     }
 
     @Override
@@ -142,9 +143,9 @@ public class TournamentServiceImpl implements TournamentService {
         if (tournament.getStage() == TournamentStage.REGISTRATION) {
             repository.cancelTournamentById(id);
         } else if (tournament.getStage() == TournamentStage.CANCELED) {
-            throw new IllegalArgumentException("Tournament with id = " + id + " is already cancelled");
+            throw new UnsupportedOperationException("Tournament with id = " + id + " is already cancelled");
         } else {
-            throw new IllegalArgumentException("Tournament cannot be canceled at the current stage");
+            throw new UnsupportedOperationException("Tournament cannot be canceled at the current stage");
         }
     }
 
@@ -244,13 +245,24 @@ public class TournamentServiceImpl implements TournamentService {
         return repository.findTournamentsBetweenDatesByTeam(pageable, startDate, endDate, team).map(TournamentMapper.INSTANCE::tournamentToTournamentDTO);
     }
 
-    private UserDTO getUserFromAuthentication(Authentication auth) {
-        if (auth.getAuthorities() != null) {
+    @Override
+    public UserDTO getUserFromAuthentication(Authentication auth) {
+        if (auth != null && auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ADMIN"))
+        ){
+            UserDTO userDTO = new UserDTO();
+            userDTO.setRoles(auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.joining(", ")));
+            return userDTO;
+        } else if (auth != null && auth.getAuthorities() != null) {
             User userFromDB = userRepository.findUserByUsername(auth.getName());
             if (userFromDB != null) {
                 return UserMapper.INSTANCE.userToUserDTO(userFromDB);
             }
         }
+
         throw new ForbiddenException("Forbidden: user access not resolved");
     }
 

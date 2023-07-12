@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,17 +15,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.eljke.tournamentsystem.dto.MatchDTO;
-import ru.eljke.tournamentsystem.dto.TournamentDTO;
 import ru.eljke.tournamentsystem.entity.*;
 import ru.eljke.tournamentsystem.service.MatchService;
-import ru.eljke.tournamentsystem.service.TournamentService;
 
 @RestController
 @RequestMapping("/tournaments")
 @RequiredArgsConstructor
+@Tag(name = "Matches", description = "Operations with matches")
 public class MatchController {
     private final MatchService matchService;
-    private final TournamentService tournamentService;
 
     @Operation(summary = "Get all matches", description = "Returns all matches by pages")
     @ApiResponses({
@@ -70,30 +69,25 @@ public class MatchController {
 
     @Operation(summary = "Create match", description = "Create match with given body")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successful operation")
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "401", description = "Forbidden")
     })
     @PostMapping("/{tournamentId}/matches/create")
     public ResponseEntity<MatchDTO> create(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
                                         @Parameter(name = "match", description = "Match object", required = true) @RequestBody Match match,
                                              @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-
-        // Проверка школы турнира на соответствие школе учителя
-        User user = (User) auth.getPrincipal();
-        if (!user.getRoles().contains(Role.ADMIN)) {
-            String teacherSchool = user.getSchool();
-
-            if (tournamentService.getTournamentById(tournamentId).getOrganizingSchool() == null
-                    || !tournamentService.getTournamentById(tournamentId).getOrganizingSchool().equals(teacherSchool)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+        System.out.println(tournamentId);
+        MatchDTO matchToCreateDTO = matchService.createMatch(match, tournamentId, auth);
+        if (matchToCreateDTO == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-        return ResponseEntity.ok(matchService.createMatch(match, tournamentService.getTournamentById(tournamentId).getId()));
+        return ResponseEntity.ok(matchToCreateDTO);
     }
 
     @Operation(summary = "Update match by ID", description = "Update a single match by their ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "401", description = "Forbidden"),
             @ApiResponse(responseCode = "404", description = "Match not found")
     })
     @PutMapping("/{tournamentId}/matches/{id}")
@@ -101,49 +95,24 @@ public class MatchController {
                                         @Parameter(name = "match id", description = "Match ID", required = true) @PathVariable Long id,
                                              @Parameter(name = "match", description = "Match object", required = true) @RequestBody Match match,
                                              @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        TournamentDTO tournamentDTO = tournamentService.getTournamentById(tournamentId);
-        // Проверка школы турнира на соответствие школе учителя
-        User user = (User) auth.getPrincipal();
-        if (!user.getRoles().contains(Role.ADMIN)) {
-            String teacherSchool = user.getSchool();
-            if (tournamentDTO.getOrganizingSchool() == null
-                    || !tournamentDTO.getOrganizingSchool().equals(teacherSchool)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+        MatchDTO matchToUpdateDTO = matchService.updateMatchById(match, id, tournamentId, auth);
+        if (matchToUpdateDTO == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        if (matchService.getMatchById(id) != null) {
-            return ResponseEntity.ok(matchService.updateMatchById(match, id, tournamentId));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(matchToUpdateDTO);
     }
 
     @Operation(summary = "Delete match by ID", description = "Deletes match by its ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "401", description = "Forbidden"),
             @ApiResponse(responseCode = "404", description = "Match not found")
     })
     @DeleteMapping("/{tournamentId}/matches/{id}")
     public ResponseEntity<String> delete(@Parameter(name = "tournament id", description = "Tournament ID", required = true) @PathVariable Long tournamentId,
                                          @Parameter(name = "match id", description = "Match ID", required = true) @PathVariable Long id,
                                          @Parameter(name = "auth", description = "User's authentication", required = true) Authentication auth) {
-        TournamentDTO tournamentDTO = tournamentService.getTournamentById(tournamentId);
-        MatchDTO matchToDelete = matchService.getMatchById(id);
-        // Проверка школы турнира на соответствие школе учителя
-        User user = (User) auth.getPrincipal();
-        if (!user.getRoles().contains(Role.ADMIN)) {
-            String teacherSchool = user.getSchool();
-
-            if (tournamentDTO.getOrganizingSchool() == null
-                    || !tournamentDTO.getOrganizingSchool().equals(teacherSchool)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
-        if (matchToDelete != null) {
-            matchService.deleteMatchById(id, tournamentId);
-            return ResponseEntity.status(HttpStatus.OK).body("Successfully!");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        matchService.deleteMatchById(id, tournamentId, auth);
+        return ResponseEntity.status(HttpStatus.OK).body("Successfully deleted match with id = " + id);
     }
 }

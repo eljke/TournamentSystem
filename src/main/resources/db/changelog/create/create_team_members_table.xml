@@ -14,7 +14,7 @@
             <column name="team_id" type="BIGINT">
                 <constraints nullable="false" references="team(id)" foreignKeyName="team_fk"/>
             </column>
-            <column name="member_id" type="BIGINT">
+            <column name="members_id" type="BIGINT">
                 <constraints nullable="false" references="user_details(id)" foreignKeyName="member_fk"/>
             </column>
         </createTable>

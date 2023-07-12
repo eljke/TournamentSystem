@@ -50,8 +50,10 @@ public class User implements UserDetails {
     @PastOrPresent
     @Column(name = "birth_date")
     private LocalDate birthDate;
+    @Schema(name = "User phone", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @Column(name = "phone")
     private String phone;
+    @Schema(name = "User email", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @Email
     @Column(name = "email")
     private String email;
@@ -73,14 +75,16 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(name = "grade_letter")
     private GradeLetter gradeLetter;
-    @Schema(name = "User grade", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(name = "User grade", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @Column(name = "grade")
     private String grade;
     @Schema(name = "User roles", requiredMode = Schema.RequiredMode.REQUIRED)
     @Enumerated(EnumType.STRING)
     @ElementCollection(fetch = FetchType.EAGER, targetClass = Role.class)
     private Set<Role> roles;
+    @Schema(name = "Is user banned", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Boolean isBanned = false;
+    @Schema(name = "User's ban reason", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String banReason;
 
     public String getGrade() {

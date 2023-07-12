@@ -208,8 +208,16 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Override
     public UserDTO register(LoginRequestDTO request) {
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
+        if (request.getUsername() != null) {
+            user.setUsername(request.getUsername());
+        } else {
+            throw new UnsupportedOperationException("Username cannot be null");
+        }
+        if (request.getPassword() != null) {
+            user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
+        } else {
+            throw new UnsupportedOperationException("Password cannot be null");
+        }
         // TODO: ПОКА ТУТ ЗАГЛУШКА
         user.setCity("");
         user.setBirthDate(LocalDate.of(1970, 1, 1));

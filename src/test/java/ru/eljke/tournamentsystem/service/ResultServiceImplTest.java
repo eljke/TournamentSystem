@@ -25,7 +25,7 @@ public class ResultServiceImplTest {
     }
 
     @Test
-    public void testGetResultById_ExistingId_ReturnsResult() {
+    public void testGetResultByIdExistingIdReturnsResult() {
         Long resultId = 1L;
         Result expectedResult = new Result();
         Mockito.when(resultRepository.findById(resultId))

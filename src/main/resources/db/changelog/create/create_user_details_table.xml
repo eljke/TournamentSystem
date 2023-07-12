@@ -31,8 +31,8 @@
             <column name="grade_number" type="VARCHAR(255)"/>
             <column name="grade_letter" type="VARCHAR(255)"/>
             <column name="grade" type="VARCHAR(255)"/>
-            <column name="isBanned" type="BOOLEAN"/>
-            <column name="banReason" type="VARCHAR(255)"/>
+            <column name="is_banned" type="BOOLEAN"/>
+            <column name="ban_reason" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>

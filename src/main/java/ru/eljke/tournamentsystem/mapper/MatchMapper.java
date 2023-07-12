@@ -54,4 +54,12 @@ public interface MatchMapper {
 
         return ResultMapper.INSTANCE.resultToResultDTO(result);
     }
+
+    default String resultToString(Result result) {
+        if (result == null) {
+            return null;
+        }
+
+        return result.toString();
+    }
 }

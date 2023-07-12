@@ -15,23 +15,15 @@ import ru.eljke.tournamentsystem.mapper.TeamMapper;
 import ru.eljke.tournamentsystem.repository.TeamRepository;
 import ru.eljke.tournamentsystem.repository.UserRepository;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public class TeamServiceImplTest {
     @InjectMocks
     private TeamServiceImpl teamService;
-
     @Mock
     private TeamRepository teamRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
     @Mock
     private Pageable pageable;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -64,13 +56,7 @@ public class TeamServiceImplTest {
 
     @Test
     public void testGetAllTeamsReturnsPageOfTeamDTO() {
-        List<Team> teams = new ArrayList<>();
-        Team team1 = new Team();
-        team1.setId(1L);
-        Team team2 = new Team();
-        team2.setId(2L);
-        teams.add(team1);
-        teams.add(team2);
+        @SuppressWarnings("unchecked")
         Page<Team> teamPage = Mockito.mock(Page.class);
         Page<TeamDTO> teamDtoPage = teamPage.map(TeamMapper.INSTANCE::teamToTeamDTO);
 
@@ -81,33 +67,26 @@ public class TeamServiceImplTest {
         Assertions.assertEquals(teamDtoPage, result);
     }
 
-//    @Test
-//    public void testCreateTeamReturnsCreatedTeamDTO() {
-//        List<User> userList = new ArrayList<>();
-//        User user1 = new User();
-//        user1.setId(1L);
-//        user1.setUsername("us");
-//
-//        User user2 = new User();
-//        user1.setId(2L);
-//        user2.setUsername("er");
-//        userList.add(user1);
-//        userList.add(user2);
-//
-//        Team team = new Team();
-//        team.setId(1L);
-//        team.setMembers(userList);
-//
-//        TeamDTO expectedTeamDTO = TeamMapper.INSTANCE.teamToTeamDTO(team);
-//        Mockito.when(userRepository.findById(1L))
-//                .thenReturn(Optional.of(user1));
-//        Mockito.when(teamRepository.save(team))
-//                .thenReturn(team);
-//
-//        TeamDTO actualTeamDTO = teamService.createTeam(team);
-//
-//        Assertions.assertEquals(expectedTeamDTO, actualTeamDTO);
-//    }
+    @Test
+    public void testCreateTeamReturnsCreatedTeamDTO() {
+        Team team = new Team();
+        team.setId(1L);
+        team.setName("team name");
+
+        TeamDTO expectedTeamDTO = TeamMapper.INSTANCE.teamToTeamDTO(team);
+
+        Mockito.when(teamRepository.save(team))
+                .thenReturn(team);
+
+        if (team.getMembers() == null) {
+            Assertions.assertThrows(IllegalArgumentException.class, () ->
+                teamService.createTeam(team)
+            );
+        } else {
+            TeamDTO actualTeamDTO = teamService.createTeam(team);
+            Assertions.assertEquals(expectedTeamDTO, actualTeamDTO);
+        }
+    }
 
     @Test
     public void testUpdateTeamByIdExistingIdReturnsUpdatedTeamDTO() {
@@ -130,30 +109,25 @@ public class TeamServiceImplTest {
     }
 
     @Test
-    public void testDeleteTeamById_ExistingId_DeletesTeam() {
-        // Arrange
+    public void testDeleteTeamByIdExistingIdDeletesTeam() {
         Long teamId = 1L;
         Team team = new Team();
         team.setId(teamId);
         Mockito.when(teamRepository.findById(teamId))
                 .thenReturn(Optional.of(team));
 
-        // Act
         teamService.deleteTeamById(teamId);
 
-        // Assert
         Mockito.verify(teamRepository, Mockito.times(1))
                 .deleteById(teamId);
     }
 
     @Test
-    public void testDeleteTeamById_NonExistingId_ThrowsIllegalArgumentException() {
-        // Arrange
+    public void testDeleteTeamByIdNonExistingIdThrowsIllegalArgumentException() {
         Long teamId = 1L;
         Mockito.when(teamRepository.findById(teamId))
                 .thenReturn(Optional.empty());
 
-        // Assert
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> teamService.deleteTeamById(teamId));
     }

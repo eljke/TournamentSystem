@@ -8,7 +8,7 @@ services:
     depends_on:
       - db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/members
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/tournamentsystem
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=qwer5678
       - SPRING_JPA_GENERATE_DDL=true
@@ -21,6 +21,18 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: qwer5678
-      POSTGRES_DB: members
+      POSTGRES_DB: tournamentsystem
     ports:
       - "5432:5432"
+  tests:
+    image: 'docker-spring-boot-postgres:latest'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/tournamentsystem
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=qwer5678
+    command: mvn test
