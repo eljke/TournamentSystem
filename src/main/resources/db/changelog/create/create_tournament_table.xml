@@ -33,6 +33,7 @@
             <column name="type" type="VARCHAR(255)"/>
             <column name="team_size" type="INTEGER"/>
             <column name="is_public" type="BOOLEAN"/>
+            <column name="is_canceled" type="BOOLEAN"/>
         </createTable>
     </changeSet>
 </databaseChangeLog>

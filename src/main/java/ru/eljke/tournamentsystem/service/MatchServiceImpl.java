@@ -95,10 +95,9 @@ public class MatchServiceImpl implements MatchService {
 
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new IllegalArgumentException("No tournament found"));
-        System.out.println(tournament);
+
         tournament.setMatches(new ArrayList<>());
         tournament.addMatch(match);
-        System.out.println(tournament);
 
         return MatchMapper.INSTANCE.matchToMatchDTO(repository.save(match));
     }

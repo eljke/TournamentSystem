@@ -14,7 +14,7 @@
             <column name="tournament_id" type="BIGINT">
                 <constraints nullable="false" references="tournament(id)" foreignKeyName="tournament_fk"/>
             </column>
-            <column name="participating_city" type="VARCHAR(255)">
+            <column name="participating_cities" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

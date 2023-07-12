@@ -14,10 +14,10 @@
             <column name="tournament_id" type="BIGINT">
                 <constraints nullable="false" references="tournament(id)" foreignKeyName="tournament_fk"/>
             </column>
-            <column name="team_id" type="BIGINT">
+            <column name="team_participants_id" type="BIGINT">
                 <constraints nullable="false" references="team(id)" foreignKeyName="team_fk"/>
             </column>
         </createTable>
-        <addPrimaryKey columnNames="tournament_id, team_id" constraintName="pk_tournament_team_participants" tableName="tournament_team_participants"/>
+        <addPrimaryKey columnNames="tournament_id, team_participants_id" constraintName="pk_tournament_team_participants" tableName="tournament_team_participants"/>
     </changeSet>
 </databaseChangeLog>
